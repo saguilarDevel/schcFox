@@ -1,0 +1,17 @@
+{
+    "ruleLength": 4,
+    "ruleID": 1,
+    "profile": {
+        "L2WordSize": 8
+    },
+    "fragmentation": {
+        "FRMode": "noAck",
+        "FRModeProfile": {
+            "dtagSize": 0,
+            "FCNSize": 4,
+            "MICAlgorithm": "None",
+            "MICWordSize": 8
+        }
+    }
+}
+
