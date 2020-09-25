@@ -32,12 +32,12 @@ class Sigfox_Entity(Protocol):
         if direction == "UPLINK":
             self.MTU = 12 * 8
 
-            # if mode == "NO ACK":
-            #     self.HEADER_LENGTH = 8
-            #     self.RULE_ID_SIZE = 2  # recommended
-            #     self.T = 2  # recommended
-            #     self.N = 4  # recommended
-            #     self.M = 0
+            if mode == "NO ACK":
+                self.HEADER_LENGTH = 8
+                self.RULE_ID_SIZE = 4  # recommended
+                self.T = 0  # recommended
+                self.N = 4  # recommended
+                self.M = 0  # Not present
 
             if mode == "ACK ALWAYS":
                 pass  # TBD
