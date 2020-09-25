@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from math import ceil, floor
-from Messages.Header import Header
+from Messages.Header import Header, HeaderNoACK
 
 def zfill(string, width):
     if len(string) < width:
@@ -144,6 +144,7 @@ class FragmenterNoAck(Fragmenter):
 #    The sender MAY transmit a SCHC Sender-Abort.
 
 	def fragment(self):
+		print("[FRGM] Begin fragmentation noACK uplink")
 		payload_max_length = int((self.profile.MTU - self.profile.HEADER_LENGTH) / 8)
 		message = self.schc_packet
 		fragment_list = []
@@ -154,16 +155,16 @@ class FragmenterNoAck(Fragmenter):
 		print("[FRGM] Fragmenting message into " + str(number_of_fragments) + " pieces...")
 
 		for i in range(number_of_fragments):
-			w = zfill(bin(int(floor((i/(2**n - 1) % (2 ** m)))))[2:], 2)
-			fcn = zfill(bin((2 ** n - 2) - (i % (2 ** n - 1)))[2:], 3)
+			# w = zfill(bin(int(floor((i/(2**n - 1) % (2 ** m)))))[2:], 2)
+			fcn = zfill(bin((2 ** n - 2) - (i % (2 ** n - 1)))[2:], 4)
 
 			fragment_payload = message[i * payload_max_length:(i + 1) * payload_max_length]
-
+			print('len(fragment_payload) -> {}, payload_max_length -> {}'.format(len(fragment_payload),payload_max_length))
 			if len(fragment_payload) < payload_max_length:
-				header = Header(self.profile, rule_id="0001", dtag="0", w=w, fcn="111", c=0)
+				header = HeaderNoACK(self.profile, rule_id="0001", fcn="1111", c=0)
 
 			else:
-				header = Header(self.profile, rule_id="0001", dtag="0", w=w, fcn=fcn, c=0)
+				header = HeaderNoACK(self.profile, rule_id="0001", fcn=fcn, c=0)
 
 			fragment = [header.bytes, fragment_payload]
 			# print("[" + header.string + "]" + str(fragment_payload))

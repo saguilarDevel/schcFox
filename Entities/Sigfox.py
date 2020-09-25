@@ -33,11 +33,15 @@ class Sigfox_Entity(Protocol):
             self.MTU = 12 * 8
 
             if mode == "NO ACK":
+                print("[SCHCFOX] Uplink No-ACK mode selected")
                 self.HEADER_LENGTH = 8
                 self.RULE_ID_SIZE = 4  # recommended
                 self.T = 0  # recommended
                 self.N = 4  # recommended
                 self.M = 0  # Not present
+                # windows are not used in NoACK, however, N size limits the maximum
+                # schc packet size that can be transmitted in NoACK
+                self.WINDOW_SIZE = 2 ** self.N - 1
 
             if mode == "ACK ALWAYS":
                 pass  # TBD

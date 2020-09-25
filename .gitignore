@@ -1,3 +1,7 @@
 /all_windows
 .vscode
 timestamp
+/Rules
+/Entities/__pycache__/Fragmenter.cpython-37.pyc
+/Entities/__pycache__/Sigfox.cpython-37.pyc
+/Messages/__pycache__/Header.cpython-37.pyc

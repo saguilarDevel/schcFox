@@ -94,7 +94,7 @@ if len(fragment_list) > (2 ** profile_uplink.M) * profile_uplink.WINDOW_SIZE:
 	print((2 ** profile_uplink.M) * profile_uplink.WINDOW_SIZE)
 	print("The SCHC packet cannot be fragmented in 2 ** M * WINDOW_SIZE fragments or less. A Rule ID cannot be selected.")
 	# What does this mean?
-
+input('break')
 # Start sending fragments.
 while i < len(fragment_list):
 
