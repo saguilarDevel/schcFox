@@ -145,6 +145,8 @@ class FragmenterNoAck(Fragmenter):
 
 	def fragment(self):
 		print("[FRGM] Begin fragmentation noACK uplink")
+		
+
 		payload_max_length = int((self.profile.MTU - self.profile.HEADER_LENGTH) / 8)
 		message = self.schc_packet
 		fragment_list = []
@@ -153,7 +155,15 @@ class FragmenterNoAck(Fragmenter):
 		number_of_fragments = int(ceil(float(len(message)) / payload_max_length))
 
 		print("[FRGM] Fragmenting message into " + str(number_of_fragments) + " pieces...")
-
+		
+		if number_of_fragments > self.profile.WINDOW_SIZE:
+			# print(number_of_fragments)
+			# print(self.profile.WINDOW_SIZE)
+			print("The SCHC packet of {} fragments cannot be carry in {} fragments. This fragmentation mode cannot be used.".format(number_of_fragments,self.profile.WINDOW_SIZE))
+			# What does this mean?
+			# This means that is not possible to send the SCHC Packet using the current mode
+			# the Number of available FCN limits the max SCHC Packet size
+			return None
 		for i in range(number_of_fragments):
 			# w = zfill(bin(int(floor((i/(2**n - 1) % (2 ** m)))))[2:], 2)
 			fcn = zfill(bin((2 ** n - 2) - (i % (2 ** n - 1)))[2:], 4)
