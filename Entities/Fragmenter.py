@@ -157,17 +157,19 @@ class FragmenterNoAck(Fragmenter):
 		for i in range(number_of_fragments):
 			# w = zfill(bin(int(floor((i/(2**n - 1) % (2 ** m)))))[2:], 2)
 			fcn = zfill(bin((2 ** n - 2) - (i % (2 ** n - 1)))[2:], 4)
-
+			print('i-> {}, range(number_of_fragments)- > {}'.format(i,len(range(number_of_fragments))))
 			fragment_payload = message[i * payload_max_length:(i + 1) * payload_max_length]
 			print('len(fragment_payload) -> {}, payload_max_length -> {}'.format(len(fragment_payload),payload_max_length))
-			if len(fragment_payload) < payload_max_length:
+			if len(fragment_payload) < payload_max_length or i == (len(range(number_of_fragments)) - 1):
+				#added or condition so last fragment when len(fragment_payload) == payload_max_length it
+				# still is marked as All-1 fragment
 				header = HeaderNoACK(self.profile, rule_id="0001", fcn="1111", c=0)
 
 			else:
 				header = HeaderNoACK(self.profile, rule_id="0001", fcn=fcn, c=0)
 
 			fragment = [header.bytes, fragment_payload]
-			# print("[" + header.string + "]" + str(fragment_payload))
+			print("[" + header.string + "]" + str(fragment_payload))
 			fragment_list.append(fragment)
 
 		print("[FRGM] Fragmentation complete.")
