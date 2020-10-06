@@ -51,7 +51,7 @@ verbose = True
 # ip = sys.argv[1]
 # port = int(sys.argv[2])
 # filename = sys.argv[3]
-filename = 'example.txt'
+filename = 'example4.txt'
 # address = (ip, port)
 
 
@@ -60,6 +60,7 @@ pycom.heartbeat(False)
 pycom.rgbled(0x007f00) # green
 # Read the file to be sent.
 pycom.rgbled(0x7f7f00) # yellow
+print("Reading file {}".format(filename))
 with open(filename, "rb") as data:
 	f = data.read()
 	payload = bytearray(f)
@@ -127,6 +128,8 @@ while i < len(fragment_list):
 		# If a fragment is an All-0 or an All-1:
 		if retransmitting or fragment.is_all_0() or fragment.is_all_1():
 			print('Preparing for sending All-0 or All-1')
+			#clearing ack variable
+			ack = None
 			# wait for a downlink after sending the uplink packet
 			the_socket.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, True)
 			
@@ -147,6 +150,7 @@ while i < len(fragment_list):
 				print('ack -> {}'.format(ack))
 				#time.sleep(wait_time)
 			except OSError as e:
+				# No message was received ack=None
 				print('Error number {}, {}'.format(e.args[0],e))
 				if e.args[0] == 11:
 					# Retry Logic
@@ -171,9 +175,18 @@ while i < len(fragment_list):
 		pycom.rgbled(0x7f7f00) # yellow
 		print(str(current_size) + " / " + str(total_size) + ", " + str(percent) + "%")
 
+	# No ACK was received for the intermediate window
+	if fragment.is_all_0() and ack is None:
+		print('No ACK received, continue sending fragments')
+	# No ACK was received for the last window
+	# it should, so a SCHC ACK must be send.
+	# Not sure if RETRANSMISSION_TIMER_VALUE was expired, but the 
+	# reception window has expired, so there is no opportunity
+	# from the receiver to send an ACK.
+	# elif fragment.is_all_1() and ack is None:
 
 	# If a fragment is an All-0 or an All-1:
-	if retransmitting or fragment.is_all_0() or fragment.is_all_1():
+	elif retransmitting or fragment.is_all_0() or fragment.is_all_1():
 
 		# Juan Carlos dijo que al enviar un ACKREQ el contador se reinicia.
 		attempts = 0
@@ -184,7 +197,10 @@ while i < len(fragment_list):
 		while attempts < profile_uplink.MAX_ACK_REQUESTS:
 
 			# Try receiving an ACK from the receiver.
-			try:
+			# Check if the ACK = None
+			if ack is not None:
+
+			# try:
 						
 				# ack, address = the_socket.recvfrom(profile_downlink.MTU)
 				print("ACK received. {}".format(ack))
@@ -301,13 +317,17 @@ while i < len(fragment_list):
 				break
 
 			# If no ACK was received
-			except socket.timeout:
+			else:
+				
+			# except socket.timeout:
 				pycom.rgbled(0x7f0000) # red
 				attempts += 1
 				if attempts < profile_uplink.MAX_ACK_REQUESTS:
 
 					# TODO: What happens when the ACK gets lost?
-
+					# Should send an ACK REQ after Retransmission Timer expires?
+					# The Number of ACK REQ that should be send depends in the MAX ACK REQ variable.?
+					print("Attempt number: {}".format(attempts))
 					print("No ACK received (RETRANSMISSION_TIMER_VALUE). Waiting for it again...")
 				else:
 					print("MAX_ACK_REQUESTS reached. Goodbye.")
@@ -327,4 +347,4 @@ the_socket.close()
 time.sleep(1)
 
 # Compare if the reassembled file is the same as the original (only on offline testing)
-print(filecmp.cmp("received.txt", filename))
+# print(filecmp.cmp("received.txt", filename))

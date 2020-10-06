@@ -19,7 +19,7 @@ class Sigfox_Entity(Protocol):
         self.NAME = "SIGFOX"
         self.direction = direction
         self.mode = mode
-        self.RETRANSMISSION_TIMER_VALUE = 45  # (45) enough to let a downlink message to be sent if needed
+        self.RETRANSMISSION_TIMER_VALUE = 60  # (45) enough to let a downlink message to be sent if needed
         self.INACTIVITY_TIMER_VALUE = 10  # (60) for demo purposes
 
         self.N = 0

@@ -33,7 +33,7 @@ class Fragmenter:
 
 			fragment_payload = message[i * payload_max_length:(i + 1) * payload_max_length]
 
-			if len(fragment_payload) < payload_max_length:
+			if len(fragment_payload) < payload_max_length or i == (len(range(number_of_fragments)) - 1):
 				header = Header(self.profile, rule_id="00", dtag="0", w=w, fcn="111", c=0)
 
 			else:
