@@ -29,8 +29,9 @@ def zfill(string, width):
 		return string
 
 def send_sigfox(the_socket, data,timeout, downlink_enable = False, downlink_mtu = 8):
-
+	""" Function to send messages to the sigfox cloud  """
 	# Set the timeout for RETRANSMISSION_TIMER_VALUE.
+	time.sleep(5)
 	the_socket.settimeout(timeout)
 
 	if downlink_enable:
@@ -104,7 +105,7 @@ verbose = True
 # ip = sys.argv[1]
 # port = int(sys.argv[2])
 # filename = sys.argv[3]
-filename = 'example4.txt'
+filename = 'example3.txt'
 # address = (ip, port)
 
 
@@ -183,13 +184,15 @@ while i < len(fragment_list):
 		# A fragment has the format "fragment = [header, payload]".
 		data = bytes(fragment_list[i][0] + fragment_list[i][1])
 
-		if verbose:
-			print(str(i) + "th fragment:")
-			print("data -> {}".format(data))
-			print("fragment list -> {}".format(fragment_list[i][1]))
 
 		# Convert to a Fragment class for easier manipulation.
 		fragment = Fragment(profile_uplink, fragment_list[i])
+
+		if verbose:
+			print(str(i) + "th fragment:")
+			print("RuleID:{}, WINDOW:{}, FCN:{}".format(fragment.header.W,fragment.header.FCN))
+			print("data -> {}".format(data))
+			print("fragment list -> {}".format(fragment_list[i][1]))
 
 		current_size += len(fragment_list[i][1])
 		percent = round(float(current_size) / float(total_size) * 100, 2)
