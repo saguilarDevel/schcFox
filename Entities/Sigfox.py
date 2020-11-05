@@ -19,7 +19,7 @@ class Sigfox_Entity(Protocol):
         self.NAME = "SIGFOX"
         self.direction = direction
         self.mode = mode
-        self.RETRANSMISSION_TIMER_VALUE = 60  # (45) enough to let a downlink message to be sent if needed
+        self.RETRANSMISSION_TIMER_VALUE = 10  # (45) enough to let a downlink message to be sent if needed #set to 10 for testing
         self.INACTIVITY_TIMER_VALUE = 10  # (60) for demo purposes
 
         self.N = 0
@@ -33,7 +33,7 @@ class Sigfox_Entity(Protocol):
             self.MTU = 12 * 8
 
             if mode == "NO ACK":
-                print("[SCHCFOX] Uplink No-ACK mode selected")
+                print("Uplink No-ACK mode selected")
                 self.HEADER_LENGTH = 8
                 self.RULE_ID_SIZE = 4  # recommended
                 self.T = 0  # recommended
