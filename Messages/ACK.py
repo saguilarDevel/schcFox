@@ -20,14 +20,14 @@ class ACK:
         self.bitmap = bitmap
         self.c = c
 
-        self.header = bytearray((self.rule_id + self.dtag + self.w + self.bitmap + self.c).encode())
+        self.header = bytearray((self.rule_id + self.dtag + self.w + self.c + self.bitmap).encode())
 
         # print("Applying padding for ACK...")
         # print(profile.MTU)
 
         while len(self.header + self.padding) < profile.MTU:
             # print(len(self.header + self.padding))
-            self.padding += bytes(1)
+            self.padding += bytes(0)
 
         # print("ACK is now " + str(len(self.header + self.padding)) + " bits long")
 

@@ -134,15 +134,15 @@ while i < len(fragment_list):
 				# ack = response
 				ack, address = the_socket.recvfrom(profile_downlink.MTU)
 				print('ACK -> {}'.format(ack))
-				print("ACK received.")
-				index = profile_uplink.RULE_ID_SIZE + profile_uplink.T + profile_uplink.M
+				print("ACK received. - {}".format(ack.decode()))
+				index = profile_uplink.RULE_ID_SIZE + profile_uplink.T + profile_uplink.M + 1
 				bitmap = ack.decode()[index:index + profile_uplink.BITMAP_SIZE]
-				ack_window = int(ack.decode()[profile_uplink.RULE_ID_SIZE + profile_uplink.T:index], 2)
+				ack_window = int(ack.decode()[profile_uplink.RULE_ID_SIZE + profile_uplink.T:index - 1], 2)
 				print("ACK_WINDOW " + str(ack_window))
 				print(ack.decode())
-				print(bitmap)
+				print("bitmap:{}".format(bitmap))
 
-				index_c = index + profile_uplink.BITMAP_SIZE
+				index_c = index - 1
 				c = ack.decode()[index_c]
 
 				print(c)
@@ -179,8 +179,8 @@ while i < len(fragment_list):
 								fragment_to_be_resent = fragment_list[(2 ** profile_uplink.N - 1) * ack_window + j]
 								data_to_be_resent = bytes(fragment_to_be_resent[0] + fragment_to_be_resent[1])
 								print(data_to_be_resent)
-								requests(data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE)
-								# the_socket.sendto(data_to_be_resent, address)
+								# requests(data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE)
+								the_socket.sendto(data_to_be_resent, address)
 								resent = True
 
 							# If the fragment wasn't found, it means we're at the last window with no fragment
@@ -191,14 +191,14 @@ while i < len(fragment_list):
 								retransmitting = False
 
 								# Request last ACK sending the All-1 again.
-								requests(data,profile_uplink.RETRANSMISSION_TIMER_VALUE)
-								# the_socket.sendto(data, address)
+								# requests(data,profile_uplink.RETRANSMISSION_TIMER_VALUE)
+								the_socket.sendto(data, address)
 
 					# After sending the lost fragments, send the last ACK-REQ again
 					if resent:
-						requests(data,profile_uplink.RETRANSMISSION_TIMER_VALUE)
+						# requests(data,profile_uplink.RETRANSMISSION_TIMER_VALUE)
 
-						# the_socket.sendto(data, address)
+						the_socket.sendto(data, address)
 						retransmitting = True
 						break
 
@@ -207,7 +207,7 @@ while i < len(fragment_list):
 					if fragment.is_all_1():
 
 						# Set the timeout for RETRANSMISSION_TIMER_VALUE
-						# the_socket.settimeout(profile_uplink.RETRANSMISSION_TIMER_VALUE)
+						the_socket.settimeout(profile_uplink.RETRANSMISSION_TIMER_VALUE)
 
 						# Try receiving the last ACK.
 						try:

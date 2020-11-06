@@ -186,7 +186,7 @@ while True:
 			self.bitmap = bitmap
 			self.c = c
 
-			self.header = bytearray((self.rule_id + self.dtag + self.w + self.bitmap + self.c).encode())
+			self.header = bytearray((self.rule_id + self.dtag + self.w + self.c + self.bitmap).encode())
 
 			while len(self.header + self.padding) < profile.MTU:
 				self.padding += bytes(1)

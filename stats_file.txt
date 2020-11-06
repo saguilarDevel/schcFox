@@ -1,0 +1,2 @@
+0 - W:00, FCN:110, send Time:9.351921
+1 - W:00, FCN:111, send Time:39.94914

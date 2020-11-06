@@ -13,6 +13,7 @@ import math
 from network import Sigfox
 import socket
 import ubinascii
+import json
 
 from Entities.Fragmenter import Fragmenter
 from Entities.Sigfox import Sigfox_Entity
@@ -28,12 +29,18 @@ def zfill(string, width):
 	else:
 		return string
 
-def send_sigfox(the_socket, data,timeout, downlink_enable = False, downlink_mtu = 8):
+def send_sigfox(the_socket, fragment, data, timeout, downlink_enable = False, downlink_mtu = 8):
 	""" Function to send messages to the sigfox cloud  """
 	# Set the timeout for RETRANSMISSION_TIMER_VALUE.
 	sleep_after = 0
 	the_socket.settimeout(timeout)
 	print("Socket timeout: {}".format(timeout))
+	# clear current_fragment before insertig new data
+	current_fragment = {}
+	current_fragment['RULE_ID'] = fragment.header.RULE_ID
+	current_fragment['W'] = fragment.header.W
+	current_fragment['FCN'] = fragment.header.FCN
+	current_fragment['data'] = data
 	if downlink_enable:
 		ack = None
 		# wait for a downlink after sending the uplink packet
@@ -42,8 +49,12 @@ def send_sigfox(the_socket, data,timeout, downlink_enable = False, downlink_mtu 
 			# send uplink data
 			pycom.rgbled(0x7700CC) # purple
 			print("Sending and waiting response at: {}".format(chrono.read()))
+			current_fragment['sending_start'] = chrono.read()
 			the_socket.send(data)
-			ack = the_socket.recv(downlink_mtu)	
+			ack = the_socket.recv(downlink_mtu)
+			current_fragment['sending_end'] = chrono.read()
+			current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
+			current_fragment['rssi'] = sigfox.rssi()
 			print("Response received at: {}: ".format(chrono.read()))
 			print('ack -> {}'.format(ack))
 			print('message RSSI: {}'.format(sigfox.rssi()))
@@ -54,6 +65,9 @@ def send_sigfox(the_socket, data,timeout, downlink_enable = False, downlink_mtu 
 			#time.sleep(wait_time)
 		except OSError as e:
 			# No message was received ack=None
+			current_fragment['sending_end'] = chrono.read()
+			current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
+			current_fragment['rssi'] = sigfox.rssi()
 			print("Error at: {}: ".format(chrono.read()))
 			print('Error number {}, {}'.format(e.args[0],e))
 			pycom.rgbled(0xff0000)
@@ -61,6 +75,8 @@ def send_sigfox(the_socket, data,timeout, downlink_enable = False, downlink_mtu 
 				# Retry Logic
 				print('Error {}, {}'.format(e.args[0],e))
 		time.sleep(sleep_after)
+		print("current_fragment:{}".format(current_fragment))
+		fragments_info_array.append(current_fragment)
 		return ack
 
 	else:
@@ -71,11 +87,18 @@ def send_sigfox(the_socket, data,timeout, downlink_enable = False, downlink_mtu 
 			# send uplink data
 			pycom.rgbled(0x00ffff) # cyan
 			print("Sending with no response at: {}".format(chrono.read()))
+			current_fragment['sending_start'] = chrono.read()
 			the_socket.send(data)
+			current_fragment['sending_end'] = chrono.read()
+			current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
+			current_fragment['rssi'] = sigfox.rssi()
 			print("data sent at: {}: ".format(chrono.read()))
 			print('message RSSI: {}'.format(sigfox.rssi()))
 			#time.sleep(wait_time)
 		except OSError as e:
+			current_fragment['sending_end'] = chrono.read()
+			current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
+			current_fragment['rssi'] = sigfox.rssi()
 			print("Error at: {}: ".format(chrono.read()))
 			print('Error number {}, {}'.format(e.args[0],e))
 			pycom.rgbled(0xff0000)
@@ -83,6 +106,8 @@ def send_sigfox(the_socket, data,timeout, downlink_enable = False, downlink_mtu 
 				# Retry Logic
 				print('Error {}, {}'.format(e.args[0],e))	
 		time.sleep(sleep_after)
+		print("current_fragment:{}".format(current_fragment))
+		fragments_info_array.append(current_fragment)
 		return None
 
 
@@ -200,10 +225,10 @@ while i < len(fragment_list):
 
 		# Convert to a Fragment class for easier manipulation.
 		fragment = Fragment(profile_uplink, fragment_list[i])
-		current_fragment['RULE_ID'] = fragment.header.RULE_ID
-		current_fragment['W'] = fragment.header.W
-		current_fragment['FCN'] = fragment.header.FCN
-		current_fragment['data'] = data
+		# current_fragment['RULE_ID'] = fragment.header.RULE_ID
+		# current_fragment['W'] = fragment.header.W
+		# current_fragment['FCN'] = fragment.header.FCN
+		# current_fragment['data'] = data
 		
 		if verbose:
 			print(str(i) + "th fragment:")
@@ -221,20 +246,20 @@ while i < len(fragment_list):
 			#clearing ack variable
 			ack = None
 			print('Preparing for sending All-0 or All-1')
-			current_fragment['sending_start'] = chrono.read()
-			ack = send_sigfox(the_socket, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True, profile_downlink.MTU)
-			current_fragment['sending_end'] = chrono.read()
-			current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
-			current_fragment['rssi'] = sigfox.rssi()
+			# current_fragment['sending_start'] = chrono.read()
+			ack = send_sigfox(the_socket, fragment, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True, profile_downlink.MTU)
+			# current_fragment['sending_end'] = chrono.read()
+			# current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
+			# current_fragment['rssi'] = sigfox.rssi()
 		else:
-			current_fragment['sending_start'] = chrono.read()
-			send_sigfox(the_socket, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, False)
-			current_fragment['sending_end'] = chrono.read()
-			current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
-			current_fragment['rssi'] = sigfox.rssi()
+			# current_fragment['sending_start'] = chrono.read()
+			send_sigfox(the_socket, fragment, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, False)
+			# current_fragment['sending_end'] = chrono.read()
+			# current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
+			# current_fragment['rssi'] = sigfox.rssi()
 
-		print(current_fragment)
-		fragments_info_array.append(current_fragment)
+		# print("current_fragment:{}".format(current_fragment))
+		# fragments_info_array.append(current_fragment)
 		# the_socket.sendto(data, address)
 		pycom.rgbled(0x7f7f00) # yellow
 		print(str(current_size) + " / " + str(total_size) + ", " + str(percent) + "%")
@@ -324,13 +349,15 @@ while i < len(fragment_list):
 						exit(1)
 
 				# If the C bit is set to 1 and the fragment is an All-0 then something naughty happened.
+				# you should received an ACK with C = 0 or no ACK at all
 				elif c == '1' and fragment.is_all_0():
 					print("You shouldn't be here. (All-0 with C = 1)")
+					break
 					exit(1)
 
 				# If the C bit has not been set:
 				elif c == '0':
-					print('c bit = 0')
+					print('c bit = 0, resent = False')
 					resent = False
 					# Check the bitmap.
 					for j in range(len(bitmap)):
@@ -346,7 +373,10 @@ while i < len(fragment_list):
 								fragment_to_be_resent = fragment_list[(2 ** profile_uplink.N - 1) * ack_window + j]
 								data_to_be_resent = bytes(fragment_to_be_resent[0] + fragment_to_be_resent[1])
 								print(data_to_be_resent)
-								send_sigfox(the_socket, data_to_be_resent, profile_uplink.timeout, False)
+
+
+
+								send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.timeout, False)
 								# the_socket.send(data_to_be_resent)
 								# the_socket.sendto(data_to_be_resent, address)
 								resent = True
@@ -361,7 +391,7 @@ while i < len(fragment_list):
 
 								# Request last ACK sending the All-1 again.
 								last_ack = None
-								last_ack = send_sigfox.send(the_socket, data, profile_uplink.timeout, True)
+								last_ack = send_sigfox(the_socket, fragment, data, profile_uplink.timeout, True)
 								# the_socket.sendto(data, address)
 
 					# After sending the lost fragments, send the last ACK-REQ again
@@ -369,7 +399,7 @@ while i < len(fragment_list):
 						print("resend")
 
 						last_ack = None
-						last_ack = send_sigfox.send(the_socket, data, profile_uplink.timeout, True)
+						last_ack = send_sigfox(the_socket, fragment, data, profile_uplink.timeout, True)
 						# the_socket.sendto(data, address)
 						retransmitting = True
 						break
@@ -441,19 +471,19 @@ while i < len(fragment_list):
 					time.sleep(5)
 					print("Attempt number: {}".format(attempts))
 					print("No ACK received (RETRANSMISSION_TIMER_VALUE expired). Sending last SCHC fragment...")
-					current_fragment = {}
-					current_fragment['RULE_ID'] = fragment.header.RULE_ID
-					current_fragment['W'] = fragment.header.W
-					current_fragment['FCN'] = fragment.header.FCN
-					current_fragment['data'] = data
+					# current_fragment = {}
+					# current_fragment['RULE_ID'] = fragment.header.RULE_ID
+					# current_fragment['W'] = fragment.header.W
+					# current_fragment['FCN'] = fragment.header.FCN
+					# current_fragment['data'] = data
 					ack = None
-					current_fragment['sending_start'] = chrono.read()
-					ack = send_sigfox(the_socket, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True, profile_downlink.MTU)
-					current_fragment['sending_end'] = chrono.read()
-					current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
-					current_fragment['rssi'] = sigfox.rssi()
-					print(current_fragment)
-					fragments_info_array.append(current_fragment)
+					# current_fragment['sending_start'] = chrono.read()
+					ack = send_sigfox(the_socket, fragment, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True, profile_downlink.MTU)
+					# current_fragment['sending_end'] = chrono.read()
+					# current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
+					# current_fragment['rssi'] = sigfox.rssi()
+					# print(current_fragment)
+					# fragments_info_array.append(current_fragment)
 
 				else:
 					print("MAX_ACK_REQUESTS reached. Goodbye.")
@@ -474,19 +504,23 @@ end_sending_time = chrono.read()
 print('Stats')
 print(fragments_info_array)
 
-filename_stats = "stats_file.txt"
+filename_stats = "stats_file.json"
 print("Writing file {}".format(filename_stats))
 f = open(filename_stats, "w")
 write_string = ''
+results_json = {}
 for index, fragment in enumerate(fragments_info_array):
 	# print(fragment,index)
 	print('{} - W:{}, FCN:{}, send Time:{}'.format(index, fragment['W'],fragment['FCN'],fragment['send_time']))
 	write_string = write_string + '{} - W:{}, FCN:{}, send Time:{}'.format(index, fragment['W'],fragment['FCN'],fragment['send_time']) + "\n"
+	results_json[index] = fragment
+
+print("results_json:{}".format(results_json))
 	# f.write('{} - W:{}, FCN:{}, send Time:{}'.format(index, fragment['W'],fragment['FCN'],fragment['send_time']))
 print(write_string)
 # with open(filename_stats,'w') as out:
 #     out.writelines(fragments_info_array)
-f.write(write_string)
+f.write(json.dumps(results_json))
 f.close()
 print("fragmentation time: {}".format(fragmentation_time))
 print("total sending time: {}".format(end_sending_time-start_sending_time))

@@ -6,23 +6,23 @@
 
 
 class Header:
-    # profile = None
+    profile = None
 
-    # RULE_ID = ""
-    # DTAG = ""
-    # W = ""
-    # FCN = ""
-    # C = ""
+    RULE_ID = ""
+    DTAG = ""
+    W = ""
+    FCN = ""
+    C = ""
 
-    # string = ""
-    # bytes = None
+    string = ""
+    bytes = None
 
     def __init__(self, profile, rule_id, dtag, w, fcn, c=""):  # rule_id is arbitrary, as it's not applicable for F/R
         
         self.profile = profile
 
         direction = profile.direction
-        
+        print(direction)
         if direction == "DOWNLINK":
             self.FCN = ""
             self.C = c
