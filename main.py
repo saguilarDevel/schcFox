@@ -47,6 +47,8 @@ def send_sigfox(the_socket, fragment, data, timeout, downlink_enable = False, do
 		the_socket.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, True)
 		try:
 			# send uplink data
+			current_fragment['download_enable'] = True
+			current_fragment['ack_received'] = False
 			pycom.rgbled(0x7700CC) # purple
 			print("Sending and waiting response at: {}".format(chrono.read()))
 			current_fragment['sending_start'] = chrono.read()
@@ -62,12 +64,16 @@ def send_sigfox(the_socket, fragment, data, timeout, downlink_enable = False, do
 			# ack =bytearray(b'\x07\xf7\xff\xff\xff\xff\xff\xff')
 			ack = ''.join("{:08b}".format(int(byte)) for byte in ack)
 			print('ack string -> {}'.format(ack))
+			current_fragment['ack'] = ack if ack else ""
+			current_fragment['ack_received'] = True
 			#time.sleep(wait_time)
 		except OSError as e:
 			# No message was received ack=None
 			current_fragment['sending_end'] = chrono.read()
 			current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
 			current_fragment['rssi'] = sigfox.rssi()
+			current_fragment['ack'] = ""
+			current_fragment['ack_received'] = False
 			print("Error at: {}: ".format(chrono.read()))
 			print('Error number {}, {}'.format(e.args[0],e))
 			pycom.rgbled(0xff0000)
@@ -85,6 +91,8 @@ def send_sigfox(the_socket, fragment, data, timeout, downlink_enable = False, do
 
 		try:
 			# send uplink data
+			current_fragment['download_enable'] = False
+			current_fragment['ack_received'] = False
 			pycom.rgbled(0x00ffff) # cyan
 			print("Sending with no response at: {}".format(chrono.read()))
 			current_fragment['sending_start'] = chrono.read()
@@ -92,6 +100,7 @@ def send_sigfox(the_socket, fragment, data, timeout, downlink_enable = False, do
 			current_fragment['sending_end'] = chrono.read()
 			current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
 			current_fragment['rssi'] = sigfox.rssi()
+			current_fragment['ack'] = ""
 			print("data sent at: {}: ".format(chrono.read()))
 			print('message RSSI: {}'.format(sigfox.rssi()))
 			#time.sleep(wait_time)
@@ -99,6 +108,7 @@ def send_sigfox(the_socket, fragment, data, timeout, downlink_enable = False, do
 			current_fragment['sending_end'] = chrono.read()
 			current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
 			current_fragment['rssi'] = sigfox.rssi()
+			current_fragment['ack'] = ""
 			print("Error at: {}: ".format(chrono.read()))
 			print('Error number {}, {}'.format(e.args[0],e))
 			pycom.rgbled(0xff0000)
@@ -110,6 +120,25 @@ def send_sigfox(the_socket, fragment, data, timeout, downlink_enable = False, do
 		fragments_info_array.append(current_fragment)
 		return None
 
+# Declare states for state machine
+STATE_INIT = "STATE_INIT"
+STATE_SEND = "STATE_SEND"
+STATE_WAIT4ACK = "STATE_WAIT4ACK"
+STATE_END = "STATE_END"
+STATE_ERROR = "STATE_ERROR"
+
+STATE_RESEND = "STATE_RESEND"
+
+#State management variables
+CURRENT_STATE = ""
+NEXT_STATE = ""
+
+
+# STATE INIT 
+# INIT variables 
+# Read file to tx
+# Fragmentation process
+CURRENT_STATE = STATE_INIT
 
 
 pycom.heartbeat(True)
@@ -137,7 +166,7 @@ verbose = True
 # ip = sys.argv[1]
 # port = int(sys.argv[2])
 # filename = sys.argv[3]
-filename = 'example2.txt'
+filename = 'example4.txt'
 # address = (ip, port)
 
 
@@ -183,12 +212,13 @@ the_socket = socket.socket(socket.AF_SIGFOX, socket.SOCK_RAW)
 # make the socket blocking
 the_socket.setblocking(True)
 # wait time required if blocking set to False
-wait_time = 5
+# wait_time = 5
 
 # the_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # Start Time
 chrono.start()
+
 
 
 
@@ -199,20 +229,24 @@ fragment_list = fragmenter.fragment()
 # read elapsed time without stopping
 fragmentation_time = chrono.read()
 print("fragmentation time -> {}".format(fragmentation_time))
+
 # The fragment sender MUST initialize the Attempts counter to 0 for that Rule ID and DTag value pair
 # (a whole SCHC packet)
 attempts = 0
 retransmitting = False
 fragment = None
 
-if len(fragment_list) > (2 ** profile_uplink.M) * profile_uplink.WINDOW_SIZE:
-	print(len(fragment_list))
-	print((2 ** profile_uplink.M) * profile_uplink.WINDOW_SIZE)
-	print("The SCHC packet cannot be fragmented in 2 ** M * WINDOW_SIZE fragments or less. A Rule ID cannot be selected.")
-	# What does this mean?
-	# Sending packet does not fit (should be tested in fragmentation)
+# if len(fragment_list) > (2 ** profile_uplink.M) * profile_uplink.WINDOW_SIZE:
+# 	print(len(fragment_list))
+# 	print((2 ** profile_uplink.M) * profile_uplink.WINDOW_SIZE)
+# 	print("The SCHC packet cannot be fragmented in 2 ** M * WINDOW_SIZE fragments or less. A Rule ID cannot be selected.")
+# 	# What does this mean?
+# 	# Sending packet does not fit (should be tested in fragmentation)
+
+
 start_sending_time = chrono.read()
 # Start sending fragments.
+CURRENT_STATE = STATE_SEND
 while i < len(fragment_list):
 	current_fragment = {}
 	laps.append(chrono.read())
@@ -319,6 +353,7 @@ while i < len(fragment_list):
 				ID|W|c
 				0000000000001111111111111111111111111111111111111111111111111111
 				      ^_index
+				  
 				"""
 				print("ACK received. {}".format(ack))
 				# index = profile_uplink.RULE_ID_SIZE + profile_uplink.T + profile_uplink.M
@@ -502,10 +537,10 @@ while i < len(fragment_list):
 end_sending_time = chrono.read()
 # fragments_info_array = [{'sending_end': 9.444577, 'W': '00', 'RULE_ID': '00', 'send_time': 9.375487, 'data': b'\x0612345678910', 'sending_start': 0.06908989, 'FCN': '110'}, {'sending_end': 48.76381, 'W': '00', 'RULE_ID': '00', 'send_time': 39.27128, 'data': b'\x0711121314151', 'sending_start': 9.492536, 'FCN': '111'}]
 print('Stats')
-print(fragments_info_array)
+# print(fragments_info_array)
 
 filename_stats = "stats_file.json"
-print("Writing file {}".format(filename_stats))
+print("Writing to file {}".format(filename_stats))
 f = open(filename_stats, "w")
 write_string = ''
 results_json = {}
@@ -513,18 +548,19 @@ for index, fragment in enumerate(fragments_info_array):
 	# print(fragment,index)
 	print('{} - W:{}, FCN:{}, send Time:{}'.format(index, fragment['W'],fragment['FCN'],fragment['send_time']))
 	write_string = write_string + '{} - W:{}, FCN:{}, send Time:{}'.format(index, fragment['W'],fragment['FCN'],fragment['send_time']) + "\n"
-	results_json[index] = fragment
+	results_json["{}".format(index)] = fragment
 
 print("results_json:{}".format(results_json))
-	# f.write('{} - W:{}, FCN:{}, send Time:{}'.format(index, fragment['W'],fragment['FCN'],fragment['send_time']))
-print(write_string)
+
+# f.write('{} - W:{}, FCN:{}, send Time:{}'.format(index, fragment['W'],fragment['FCN'],fragment['send_time']))
+# print(write_string)
 # with open(filename_stats,'w') as out:
 #     out.writelines(fragments_info_array)
-f.write(json.dumps(results_json))
-f.close()
 print("fragmentation time: {}".format(fragmentation_time))
 print("total sending time: {}".format(end_sending_time-start_sending_time))
 print("total number of fragments sent: {}".format(len(fragments_info_array)))
+f.write(json.dumps(results_json))
+f.close()
 pycom.heartbeat(True)
 # Close the socket and wait for the file to be reassembled
 the_socket.close()

@@ -26,6 +26,15 @@ class Fragmenter:
 		number_of_fragments = int(ceil(float(len(message)) / payload_max_length))
 
 		print("[FRGM] Fragmenting message into " + str(number_of_fragments) + " pieces...")
+		
+		#check if the packet size can be transmitted or not
+		if len(fragment_list) > (2 ** self.profile.M) * self.profile.WINDOW_SIZE:
+			print(len(fragment_list))
+			print((2 ** self.profile.M) * self.profile.WINDOW_SIZE)
+			print("The SCHC packet cannot be fragmented in 2 ** M * WINDOW_SIZE fragments or less. A Rule ID cannot be selected.")
+			# What does this mean?
+			# Sending packet does not fit (should be tested in fragmentation)
+
 
 		for i in range(number_of_fragments):
 			w = zfill(bin(int(floor((i/(2**n - 1) % (2 ** m)))))[2:], 2)
