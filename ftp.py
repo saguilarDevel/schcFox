@@ -12,7 +12,7 @@ import network
 #     machine.idle()
 # print("WiFi connected succesfully")
 # print(wlan.ifconfig())
-
+# https://docs.pycom.io/gettingstarted/programming/ftp/
 
 import network
 import time
