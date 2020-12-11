@@ -23,6 +23,7 @@ from Messages.Fragment import Fragment
 from machine import Timer
 import time
 
+
 def zfill(string, width):
 	if len(string) < width:
 		return ("0" * (width - len(string))) + string
@@ -33,8 +34,11 @@ def send_sigfox(the_socket, fragment, data, timeout, downlink_enable = False, do
 	""" Function to send messages to the sigfox cloud  """
 	# Set the timeout for RETRANSMISSION_TIMER_VALUE.
 	sleep_after = 0
-	the_socket.settimeout(timeout)
-	print("Socket timeout: {}".format(timeout))
+	socket_timeout = timeout
+	socket_timeout = 60
+	the_socket.settimeout(socket_timeout)
+	print("------ send message ------")
+	print("Socket timeout: {}".format(socket_timeout))
 	# clear current_fragment before insertig new data
 	current_fragment = {}
 	current_fragment['RULE_ID'] = fragment.header.RULE_ID
@@ -42,17 +46,21 @@ def send_sigfox(the_socket, fragment, data, timeout, downlink_enable = False, do
 	current_fragment['FCN'] = fragment.header.FCN
 	current_fragment['data'] = data
 	current_fragment['timeout'] = timeout # socket timeout ()
+	# # seq += 1
+	# global seq
+	# current_fragment['seq'] = seq
+	# seq = seq + 1
 	if downlink_enable:
 		ack = None
 		# wait for a downlink after sending the uplink packet
 		the_socket.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, True)
 		try:
 			# send uplink data
-			current_fragment['download_enable'] = True
+			current_fragment['downlink_enable'] = True
 			current_fragment['ack_received'] = False
 			current_fragment['fragment_size'] = len(data)
 			pycom.rgbled(0x7700CC) # purple
-			print("Sending and waiting response at: {}".format(chrono.read()))
+			print("Sending with ack request at: {}".format(chrono.read()))
 			current_fragment['sending_start'] = chrono.read()
 			the_socket.send(data)
 			ack = the_socket.recv(downlink_mtu)
@@ -85,6 +93,7 @@ def send_sigfox(the_socket, fragment, data, timeout, downlink_enable = False, do
 		time.sleep(sleep_after)
 		print("current_fragment:{}".format(current_fragment))
 		fragments_info_array.append(current_fragment)
+		print("------ send message ------")	
 		return ack
 
 	else:
@@ -93,19 +102,19 @@ def send_sigfox(the_socket, fragment, data, timeout, downlink_enable = False, do
 
 		try:
 			# send uplink data
-			current_fragment['download_enable'] = False
+			current_fragment['downlink_enable'] = False
 			current_fragment['ack_received'] = False
 			current_fragment['fragment_size'] = len(data)
 			pycom.rgbled(0x00ffff) # cyan
-			print("Sending with no response at: {}".format(chrono.read()))
+			print("Sending with no ack request at: {}".format(chrono.read()))
 			current_fragment['sending_start'] = chrono.read()
 			the_socket.send(data)
 			current_fragment['sending_end'] = chrono.read()
 			current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
 			current_fragment['rssi'] = sigfox.rssi()
 			current_fragment['ack'] = ""
-			print("data sent at: {}: ".format(chrono.read()))
-			print('message RSSI: {}'.format(sigfox.rssi()))
+			# print("data sent at: {}: ".format(chrono.read()))
+			print('message rssi: {}'.format(sigfox.rssi()))
 			#time.sleep(wait_time)
 		except OSError as e:
 			current_fragment['sending_end'] = chrono.read()
@@ -121,7 +130,11 @@ def send_sigfox(the_socket, fragment, data, timeout, downlink_enable = False, do
 		time.sleep(sleep_after)
 		print("current_fragment:{}".format(current_fragment))
 		fragments_info_array.append(current_fragment)
+		print("------ send message ------")
+		
 		return None
+
+
 
 # Declare states for state machine
 STATE_INIT = "STATE_INIT"
@@ -143,10 +156,9 @@ NEXT_STATE = ""
 # Fragmentation process
 CURRENT_STATE = STATE_INIT
 
-
 pycom.heartbeat(True)
 print("This is the SENDER script for a Sigfox Uplink transmission example")
-
+input("Press enter to continue....")
 # if len(sys.argv) < 4:
 # 	print("python sender.py [IP] [PORT] [FILENAME] [-hv]")
 # 	sys.exit()
@@ -172,7 +184,8 @@ verbose = True
 filename = 'example4.txt'
 # address = (ip, port)
 
-
+# seq = 2163
+# print(seq)
 pycom.heartbeat(False)
 
 pycom.rgbled(0x007f00) # green
@@ -209,6 +222,7 @@ profile_uplink = Sigfox_Entity("UPLINK", "ACK ON ERROR")
 profile_downlink = Sigfox_Entity("DOWNLINK", "NO ACK")
 # init Sigfox for RCZ1 (Europe)
 sigfox = Sigfox(mode=Sigfox.SIGFOX, rcz=Sigfox.RCZ1)
+
 
 # create a Sigfox socket
 the_socket = socket.socket(socket.AF_SIGFOX, socket.SOCK_RAW)
@@ -269,11 +283,12 @@ while i < len(fragment_list):
 		# current_fragment['data'] = data
 		
 		if verbose:
+			print("--------------------------")
 			print(str(i) + "th fragment:")
 			
 			print("RuleID:{}, WINDOW:{}, FCN:{}".format(fragment.header.RULE_ID,fragment.header.W,fragment.header.FCN))
-			print("data -> {}".format(data))
-			print("fragment list -> {}".format(fragment_list[i][1]))
+			print("SCHC Fragment: {}".format(data))
+			print("SCHC Fragment Payload: {}".format(fragment_list[i][1]))
 
 		current_size += len(fragment_list[i][1])
 		percent = round(float(current_size) / float(total_size) * 100, 2)
@@ -341,8 +356,8 @@ while i < len(fragment_list):
 
 
 				ACK Success: [ Rule ID | Dtag |   W  | C-1 | (P-0) ]
-    			ACK Failure: [ Rule ID | Dtag |   W  | C-0 | Bitmap | (P-0) ]
-    			Recv Abort : [ Rule ID | Dtag |  W-1 | C-1 | (P-1) ]
+				ACK Failure: [ Rule ID | Dtag |   W  | C-0 | Bitmap | (P-0) ]
+				Recv Abort : [ Rule ID | Dtag |  W-1 | C-1 | (P-1) ]
 
 				Example ACK:
 				0000000000001111111111111111111111111111111111111111111111111111
@@ -353,12 +368,23 @@ while i < len(fragment_list):
 				pading: 111111111111111111111111111111111111111111111111111
 				ID|W|
 				0000000000001111111111111111111111111111111111111111111111111111
-				     ^_index
-					 
+					^_index
+					
 				ID|W|c
 				0000000000001111111111111111111111111111111111111111111111111111
-				      ^_index
-				  
+					^_index
+				ACK Examples: 1 fragment lost in window 0
+				RuleID: 000
+				W: 00
+				C: 0
+				Bitmap: 1011111
+				FCN lost: 101
+				0000001011111000000000000000000000000000000000000000000000000000
+
+				000
+				00
+				0
+				1011111000000000000000000000000000000000000000000000000000
 				"""
 				print("ACK received. {}".format(ack))
 				# index = profile_uplink.RULE_ID_SIZE + profile_uplink.T + profile_uplink.M
@@ -403,17 +429,56 @@ while i < len(fragment_list):
 					for j in range(len(bitmap)):
 						# If the j-th bit of the bitmap is 0, then the j-th fragment was lost.
 						if bitmap[j] == '0':
-
-							print("The " + str(j) + "th (" + str(
+							print("The " + str(j) + "th of window " + str(ack_window) + " (" + str(
 								(2 ** profile_uplink.N - 1) * ack_window + j) + " / " + str(
 								len(fragment_list)) + ") fragment was lost! Sending again...")
+							# print("The " + str(j) + "th (" + str(
+							# 	(2 ** profile_uplink.N - 1) * ack_window + j) + " / " + str(
+							# 	len(fragment_list) - 1) + ") fragment was lost! Sending again...")
 
 							# Try sending again the lost fragment.
 							try:
-								fragment_to_be_resent = fragment_list[(2 ** profile_uplink.N - 1) * ack_window + j]
-								data_to_be_resent = bytes(fragment_to_be_resent[0] + fragment_to_be_resent[1])
-								print(data_to_be_resent)
-								send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.timeout, False)
+								# fragment_to_be_resent = fragment_list[(2 ** profile_uplink.N - 1) * ack_window + j]
+								# A fragment has the format "fragment = [header, payload]".
+								print("{}".format((2 ** profile_uplink.N - 1) * ack_window + j))
+								data_to_be_resent = bytes(fragment_list[(2 ** profile_uplink.N - 1) * ack_window + j][0] + fragment_list[(2 ** profile_uplink.N - 1) * ack_window + j][1])
+								# data_to_be_resent = bytes(fragment_to_be_resent[0] + fragment_to_be_resent[1])
+								# Convert to a Fragment class for easier manipulation.
+								fragment_to_be_resent = Fragment(profile_uplink, fragment_list[(2 ** profile_uplink.N - 1) * ack_window + j])
+								print("RuleID:{}, WINDOW:{}, FCN:{}".format(fragment_to_be_resent.header.RULE_ID,fragment_to_be_resent.header.W,fragment_to_be_resent.header.FCN))
+								print("data_to_be_resent:{}".format(data_to_be_resent))
+								
+								if fragment_to_be_resent.is_all_0():
+									print('fragment All-0 found')
+									print("Check if it is from current window or not to resend.")
+									# there is no way to know is the All-0 is lost until the next ack,
+									# therefore, to avoid resending the the All-0, it breaks
+
+									# except when the current window is not the acked window. 
+									# this means that the All-0 was lost, therefore the receiver
+									# was not able to send the ACK before, i.e., in the corresponding window
+									# because no All-0 was received.
+
+									# in intermediate windows, the All-0 shouldn't be send again
+									if current_window != ack_window:
+										# We have the case here the acked window is not the same as the 
+										# current window.
+										# we should resend the All-0 and wait for an ACK?
+										last_ack = None
+										ack = None
+										last_ack = send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
+									break
+								
+								elif fragment_to_be_resent.is_all_1():
+									print('fragment All-1 found')
+									print("request last ACK, sending All-1 again.")
+									# print("fragment:{} - data:{}".format(fragment, data))
+									# Request last ACK sending the All-1 again.
+									last_ack = None
+									ack = None
+									last_ack = send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
+									break
+								send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE, False)
 								# the_socket.send(data_to_be_resent)
 								# the_socket.sendto(data_to_be_resent, address)
 								resent = True
@@ -425,35 +490,49 @@ while i < len(fragment_list):
 								pycom.rgbled(0x7f0000) # red
 								resent = False
 								retransmitting = False
-
-								# Request last ACK sending the All-1 again.
+								print("IndexError, request last ACK, sending All-1 again.")
+								print("RuleID:{}, WINDOW:{}, FCN:{}".format(fragment.header.RULE_ID,fragment.header.W,fragment.header.FCN))
+								# print("fragment:{} - data:{}".format(fragment, data))
+								print("resend and fragment.is_all_1()")
+								# print("fragment:{} - data:{}".format(fragment, data))
+								ack = None
 								last_ack = None
-								last_ack = send_sigfox(the_socket, fragment, data, profile_uplink.timeout, True)
+								last_ack = send_sigfox(the_socket, fragment, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
+								# 
+								break
+								# Request last ACK sending the All-1 again.
+								# last_ack = None
+								# ack = None
+								# last_ack = send_sigfox(the_socket, fragment, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
+								# if fragment.is_all_1():
+								# 	print('fragment All-1 found, break to stop sending fragments')
+								# 	break
 								# the_socket.sendto(data, address)
 
 					# After sending the lost fragments, send the last ACK-REQ again
-					if resent:
-						print("resend")
+					# only request an ACK when is the last window aka All-1 message
+					# if resent and fragment.is_all_1():
+					# 	print("resend and fragment.is_all_1()")
+					# 	print("fragment:{} - data:{}".format(fragment, data))
+					# 	ack = None
+					# 	last_ack = None
+					# 	last_ack = send_sigfox(the_socket, fragment, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
+					# 	# the_socket.sendto(data, address)
+					# 	retransmitting = True
+						
+						
 
-						last_ack = None
-						last_ack = send_sigfox(the_socket, fragment, data, profile_uplink.timeout, True)
-						# the_socket.sendto(data, address)
-						retransmitting = True
-						break
+						# break
 
 					# After sending the lost fragments, if the last received fragment was an All-1 we need to receive
 					# the last ACK.
-					if fragment.is_all_1():
+					if fragment.is_all_1() or fragment_to_be_resent.is_all_1():
 
 						# Set the timeout for RETRANSMISSION_TIMER_VALUE
 						the_socket.settimeout(profile_uplink.RETRANSMISSION_TIMER_VALUE)
-
-						# Try receiving the last ACK.
-						try:
-							# last_ack = the_socket.recv(profile_downlink.MTU)
-							# last_ack, address = the_socket.recvfrom(profile_downlink.MTU)
-							# c = last_ack.decode()[index_c]
-							c = ack.decode()[index_c]
+						if last_ack:
+							print('last_ack')
+							c = last_ack[index_c]
 
 							# If the C bit is set to 1 then we're done.
 							if c == '1':
@@ -468,23 +547,67 @@ while i < len(fragment_list):
 									print("Last ACK window does not correspond to last window. (While retransmitting)")
 									break
 									exit(1)
+						
+						elif ack:
+							print('ack')
+							c = ack[index_c]
 
-						# If the last ACK was not received, raise an error.
-						except socket.timeout:
-							pycom.rgbled(0x7f0000) # red
-							attempts += 1
-							if attempts < profile_uplink.MAX_ACK_REQUESTS:
+							# If the C bit is set to 1 then we're done.
+							if c == '1':
+								print(ack_window)
+								print(current_window)
+								if ack_window == (current_window % 2**profile_uplink.M):
+									print("Last ACK received: Fragments reassembled successfully. End of transmission. (While retransmitting)")
+									pycom.rgbled(0x007f00) # green
+									tx_status_ok = True
+									break
+								else:
+									print("Last ACK window does not correspond to last window. (While retransmitting)")
+									break
+									exit(1)
+						else:
+							# NO ACK was received after resending the All-1
+							# Or after sending al All-0 that was lost before.
+							continue
 
-								# TODO: What happens when the ACK gets lost?
-								# Send ACK-REQ or All-1
-								time.sleep(profile_uplink.RETRANSMISSION_TIMER_VALUE)
-								print("No ACK received (RETRANSMISSION_TIMER_VALUE). Waiting for it again...")
 
-							else:
-								print("MAX_ACK_REQUESTS reached. Goodbye.")
-								print("A sender-abort MUST be sent...")
-								break
-								exit(1)
+						# Try receiving the last ACK.
+						# try:
+						# 	# last_ack = the_socket.recv(profile_downlink.MTU)
+						# 	# last_ack, address = the_socket.recvfrom(profile_downlink.MTU)
+						# 	# c = last_ack.decode()[index_c]
+						# 	c = ack.decode()[index_c]
+
+						# 	# If the C bit is set to 1 then we're done.
+						# 	if c == '1':
+						# 		print(ack_window)
+						# 		print(current_window)
+						# 		if ack_window == (current_window % 2**profile_uplink.M):
+						# 			print("Last ACK received: Fragments reassembled successfully. End of transmission. (While retransmitting)")
+						# 			pycom.rgbled(0x007f00) # green
+						# 			tx_status_ok = True
+						# 			break
+						# 		else:
+						# 			print("Last ACK window does not correspond to last window. (While retransmitting)")
+						# 			break
+						# 			exit(1)
+
+						# # If the last ACK was not received, raise an error.
+						# except socket.timeout:
+						# 	pycom.rgbled(0x7f0000) # red
+						# 	attempts += 1
+						# 	if attempts < profile_uplink.MAX_ACK_REQUESTS:
+
+						# 		# TODO: What happens when the ACK gets lost?
+						# 		# Send ACK-REQ or All-1
+						# 		time.sleep(profile_uplink.RETRANSMISSION_TIMER_VALUE)
+						# 		print("No ACK received (RETRANSMISSION_TIMER_VALUE). Waiting for it again...")
+
+						# 	else:
+						# 		print("MAX_ACK_REQUESTS reached. Goodbye.")
+						# 		print("A sender-abort MUST be sent...")
+						# 		break
+						# 		exit(1)
 			
 				# Proceed to next window.
 				print("Proceeding to next window")
@@ -516,6 +639,8 @@ while i < len(fragment_list):
 					# current_fragment['data'] = data
 					ack = None
 					# current_fragment['sending_start'] = chrono.read()
+					print("RuleID:{}, WINDOW:{}, FCN:{}".format(fragment.header.RULE_ID,fragment.header.W,fragment.header.FCN))
+
 					ack = send_sigfox(the_socket, fragment, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True, profile_downlink.MTU)
 					# current_fragment['sending_end'] = chrono.read()
 					# current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
@@ -542,18 +667,25 @@ end_sending_time = chrono.read()
 print('Stats')
 # print(fragments_info_array)
 
-filename_stats = "stats_file.json"
+filename_stats = "stats_file_v2.7.json"
 print("Writing to file {}".format(filename_stats))
 f = open(filename_stats, "w")
 write_string = ''
 results_json = {}
 for index, fragment in enumerate(fragments_info_array):
 	# print(fragment,index)
-	print('{} - W:{}, FCN:{}, send Time:{}'.format(index, fragment['W'],fragment['FCN'],fragment['send_time']))
-	write_string = write_string + '{} - W:{}, FCN:{}, send Time:{}'.format(index, fragment['W'],fragment['FCN'],fragment['send_time']) + "\n"
-	results_json["{}".format(index)] = fragment
+	if fragment['downlink_enable']:
+		print('{} - W:{}, FCN:{}, TT:{}s, DL(E):{}, ack(R):{}'.format(index, fragment['W'],fragment['FCN'],fragment['send_time'],fragment['downlink_enable'],fragment['ack_received']))
+	else:
+		print('{} - W:{}, FCN:{}, TT:{}s'.format(index, fragment['W'],fragment['FCN'],fragment['send_time']))
 
-print("results_json:{}".format(results_json))
+	# write_string = write_string + '{} - W:{}, FCN:{}, send Time:{}, downlink_enable:{}, ack_received:{}'.format(index, 
+	# 	fragment['W'],fragment['FCN'],fragment['send_time'],fragment['downlink_enable'],fragment['ack_received']) + "\n"
+	results_json["{}".format(index)] = fragment
+	# results_json[index] = fragment
+print("TT: Transmission Time, DL (E): Downlink enable, ack (R): ack received")
+
+# print("results_json:{}".format(results_json))
 
 # f.write('{} - W:{}, FCN:{}, send Time:{}'.format(index, fragment['W'],fragment['FCN'],fragment['send_time']))
 # print(write_string)
@@ -571,7 +703,8 @@ total_transmission_results['tx_status_ok'] = tx_status_ok
 print("fragmentation time: {}".format(fragmentation_time))
 print("total sending time: {}".format(end_sending_time-start_sending_time))
 print("total number of fragments sent: {}".format(len(fragments_info_array)))
-print("total_transmission_results:{}".format(total_transmission_results))
+print('tx_status_ok: {}'.format(tx_status_ok))
+# print("total_transmission_results:{}".format(total_transmission_results))
 f.write(json.dumps(total_transmission_results))
 f.close()
 pycom.heartbeat(True)
