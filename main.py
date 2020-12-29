@@ -169,9 +169,10 @@ verbose = True
 # ip = sys.argv[1]
 # port = int(sys.argv[2])
 # filename = sys.argv[3]
-filename = 'example4.txt'
+filename = 'Packets/77_bytes.txt'
 # address = (ip, port)
 
+time.sleep(15)
 
 pycom.heartbeat(False)
 
@@ -231,7 +232,6 @@ chrono.start()
 
 
 
-
 # Fragment the file.
 fragmenter = Fragmenter(profile_uplink, payload)
 fragment_list = fragmenter.fragment()
@@ -282,7 +282,7 @@ while i < len(fragment_list):
 			print("fragment list -> {}".format(fragment_list[i][1]))
 
 		current_size += len(fragment_list[i][1])
-		percent = round(float(current_size) / float(total_size) * 100, 2)
+		if (total_size!= 0): percent = round(float(current_size) / float(total_size) * 100, 2)
 		wait_receive = False
 		# Send the data.
 		# If a fragment is an All-0 or an All-1:
