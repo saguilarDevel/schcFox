@@ -179,9 +179,15 @@ pycom.rgbled(0x007f00) # green
 # Read the file to be sent.
 pycom.rgbled(0x7f7f00) # yellow
 print("Reading file {}".format(filename))
-with open(filename, "rb") as data:
-	f = data.read()
-	payload = bytearray(f)
+#In case of 0-byte file, create an empty Payload
+try:
+	with open(filename, "rb") as data:
+		f = data.read()
+		payload = bytearray(f)
+
+except OSError as e:
+		print('Error number {}, {}'.format(e.args[0],e))
+		payload = ''
 
 pycom.rgbled(0x007f00) # green
 

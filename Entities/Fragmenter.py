@@ -24,6 +24,7 @@ class Fragmenter:
 		n = self.profile.N
 		m = self.profile.M
 		number_of_fragments = int(ceil(float(len(message)) / payload_max_length))
+		if len(message) == 0: number_of_fragments = 1
 
 		print("[FRGM] Fragmenting message into " + str(number_of_fragments) + " pieces...")
 		

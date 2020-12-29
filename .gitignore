@@ -5,3 +5,6 @@ timestamp
 /Entities/__pycache__/Fragmenter.cpython-37.pyc
 /Entities/__pycache__/Sigfox.cpython-37.pyc
 /Messages/__pycache__/Header.cpython-37.pyc
+/Messages/__pycache__/Reassembler.cpython-37.pyc
+/Packets
+pymakr.conf
