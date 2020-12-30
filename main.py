@@ -169,10 +169,10 @@ verbose = True
 # ip = sys.argv[1]
 # port = int(sys.argv[2])
 # filename = sys.argv[3]
-filename = 'Packets/77_bytes.txt'
+filename = 'Packets/150_bytes.txt'
 # address = (ip, port)
 
-time.sleep(15)
+time.sleep(5)
 
 pycom.heartbeat(False)
 
@@ -212,8 +212,8 @@ ack = None
 last_ack = None
 i = 0
 current_window = 0
-profile_uplink = Sigfox_Entity("UPLINK", "ACK ON ERROR")
-profile_downlink = Sigfox_Entity("DOWNLINK", "NO ACK")
+profile_uplink = Sigfox_Entity("UPLINK", "ACK ON ERROR", total_size)
+profile_downlink = Sigfox_Entity("DOWNLINK", "NO ACK", total_size)
 # init Sigfox for RCZ1 (Europe)
 sigfox = Sigfox(mode=Sigfox.SIGFOX, rcz=Sigfox.RCZ1)
 
