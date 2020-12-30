@@ -22,7 +22,7 @@ class Header:
         self.profile = profile
 
         direction = profile.direction
-        print(direction)
+        # print(direction)
         if direction == "DOWNLINK":
             self.FCN = ""
             self.C = c

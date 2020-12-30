@@ -46,17 +46,29 @@ class Fragment:
         print("Payload: " + str(self.payload))
 
     def is_all_1(self):
-        fcn = self.header.FCN
-        fcn_set = set()
-        for x in fcn:
-            fcn_set.add(x)
-        return len(fcn_set) == 1 and "1" in fcn_set
+        for N in self.header.FCN:
+            # print("All 1 -> N: {}".format(N))
+            if N == "0":
+                # print("FALSE not all-1")
+                return 
+        return True
+        # fcn = self.header.FCN
+        # fcn_set = set()
+        # for x in fcn:
+        #     fcn_set.add(x)
+        # return len(fcn_set) == 1 and "1" in fcn_set
 
     def is_all_0(self):
-        fcn = self.header.FCN
-        fcn_set = set()
-        for x in fcn:
-            fcn_set.add(x)
-        return len(fcn_set) == 1 and "0" in fcn_set
+        for N in self.header.FCN:
+            # print("All 0 -> N: {}".format(N))
+            if N == "1":
+                # print("FALSE not all-0")
+                return False
+        return True
+        # fcn = self.header.FCN
+        # fcn_set = set()
+        # for x in fcn:
+        #     fcn_set.add(x)
+        # return len(fcn_set) == 1 and "0" in fcn_set
 
 
