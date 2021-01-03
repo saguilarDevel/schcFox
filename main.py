@@ -35,7 +35,7 @@ def send_sigfox(the_socket, fragment, data, timeout, downlink_enable = False, do
 	# Set the timeout for RETRANSMISSION_TIMER_VALUE.
 	sleep_after = 0
 	socket_timeout = timeout
-	socket_timeout = 60
+	#socket_timeout = 60
 	the_socket.settimeout(socket_timeout)
 	print("------ send message ------")
 	print("Socket timeout: {}".format(socket_timeout))
@@ -181,7 +181,7 @@ verbose = True
 # ip = sys.argv[1]
 # port = int(sys.argv[2])
 # filename = sys.argv[3]
-filename = 'Packets/77_bytes.txt'
+filename = 'Packets/150_bytes.txt'
 # address = (ip, port)
 
 # seq = 2163
@@ -270,7 +270,7 @@ fragment = None
 start_sending_time = chrono.read()
 # Start sending fragments.
 CURRENT_STATE = STATE_SEND
-while i < len(fragment_list):
+while i < len(fragment_list) and tx_status_ok == False:
 	current_fragment = {}
 	laps.append(chrono.read())
 	print("laps - > {}".format(laps))
@@ -479,6 +479,7 @@ while i < len(fragment_list):
 									print("request last ACK, sending All-1 again.")
 									# print("fragment:{} - data:{}".format(fragment, data))
 									# Request last ACK sending the All-1 again.
+									retransmitting = True
 									last_ack = None
 									ack = None
 									last_ack = send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
@@ -552,6 +553,13 @@ while i < len(fragment_list):
 									print("Last ACK window does not correspond to last window. (While retransmitting)")
 									break
 									exit(1)
+							else:
+								print("Sending All-1 again.")
+								print("RuleID:{}, WINDOW:{}, FCN:{}".format(fragment.header.RULE_ID,fragment.header.W,fragment.header.FCN))
+								retransmitting = True
+								ack = None
+								ack = send_sigfox(the_socket, fragment, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
+								break
 						
 						elif ack:
 							print('ack')
@@ -570,6 +578,14 @@ while i < len(fragment_list):
 									print("Last ACK window does not correspond to last window. (While retransmitting)")
 									break
 									exit(1)
+							else:
+								print("Sending All-1 again.")
+								print("RuleID:{}, WINDOW:{}, FCN:{}".format(fragment.header.RULE_ID,fragment.header.W,fragment.header.FCN))
+								retransmitting = True
+								ack = None
+								ack = send_sigfox(the_socket, fragment, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
+								break
+
 						else:
 							# NO ACK was received after resending the All-1
 							# Or after sending al All-0 that was lost before.
@@ -634,7 +650,7 @@ while i < len(fragment_list):
 					# Should send an ACK REQ after Retransmission Timer expires?
 					# The Number of ACK REQ that should be send depends in the MAX ACK REQ variable.?
 					# time.sleep(profile_uplink.RETRANSMISSION_TIMER_VALUE)
-					time.sleep(5)
+					#time.sleep(5)
 					print("Attempt number: {}".format(attempts))
 					print("No ACK received (RETRANSMISSION_TIMER_VALUE expired). Sending last SCHC fragment...")
 					# current_fragment = {}
