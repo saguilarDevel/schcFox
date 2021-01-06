@@ -27,7 +27,7 @@ class Fragment:
         self.n = profile.N
         self.m = profile.M
 
-        header = zfill(str(bin(int.from_bytes(fragment[0], 'little')))[2:], self.header_length)
+        header = zfill(str(bin(int.from_bytes(fragment[0], 'big')))[2:], self.header_length)
         payload = fragment[1]
 
         rule_id = str(header[:self.rule_id_size])
