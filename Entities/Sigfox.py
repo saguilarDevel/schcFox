@@ -12,7 +12,7 @@ class Sigfox_Entity(Protocol):
     direction = None
     mode = None
 
-    def __init__(self, direction, mode, size):
+    def __init__(self, direction, mode, header_bytes):
 
         # print("This protocol is in " + direction + " direction and " + mode + " mode.")
 
@@ -46,7 +46,7 @@ class Sigfox_Entity(Protocol):
             if mode == "ACK ALWAYS":
                 pass  # TBD
 
-            if mode == "ACK ON ERROR" and size <= 300:
+            if mode == "ACK ON ERROR" and header_bytes == 1:
                 self.HEADER_LENGTH = 8
                 self.RULE_ID_SIZE = 2
                 self.T = 1
@@ -57,7 +57,7 @@ class Sigfox_Entity(Protocol):
                 self.MAX_ACK_REQUESTS = 3  # SHOULD be 2
                 self.MAX_WIND_FCN = 6  # SHOULD be
 
-            if mode == "ACK ON ERROR" and size > 300:
+            if mode == "ACK ON ERROR" and header_bytes == 2:
                 self.HEADER_LENGTH = 16
                 self.RULE_ID_SIZE = 7
                 self.T = 1

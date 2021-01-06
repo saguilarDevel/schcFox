@@ -169,7 +169,7 @@ verbose = True
 # ip = sys.argv[1]
 # port = int(sys.argv[2])
 # filename = sys.argv[3]
-filename = 'Packets/150_bytes.txt'
+filename = 'Packets/77_bytes.txt'
 # address = (ip, port)
 
 time.sleep(5)
@@ -212,8 +212,14 @@ ack = None
 last_ack = None
 i = 0
 current_window = 0
-profile_uplink = Sigfox_Entity("UPLINK", "ACK ON ERROR", total_size)
-profile_downlink = Sigfox_Entity("DOWNLINK", "NO ACK", total_size)
+if total_size <= 300:
+	header_bytes = 1
+elif total_size > 300:
+	header_bytes = 2
+
+print("total_size = {} and header_bytes = {}".format(total_size, header_bytes))
+profile_uplink = Sigfox_Entity("UPLINK", "ACK ON ERROR", header_bytes)
+profile_downlink = Sigfox_Entity("DOWNLINK", "NO ACK", header_bytes)
 # init Sigfox for RCZ1 (Europe)
 sigfox = Sigfox(mode=Sigfox.SIGFOX, rcz=Sigfox.RCZ1)
 
@@ -419,7 +425,7 @@ while i < len(fragment_list):
 								fragment_to_be_resent = fragment_list[(2 ** profile_uplink.N - 1) * ack_window + j]
 								data_to_be_resent = bytes(fragment_to_be_resent[0] + fragment_to_be_resent[1])
 								print(data_to_be_resent)
-								send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.timeout, False)
+								send_sigfox(the_socket, data_to_be_resent, data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE, False)
 								# the_socket.send(data_to_be_resent)
 								# the_socket.sendto(data_to_be_resent, address)
 								resent = True
@@ -434,7 +440,7 @@ while i < len(fragment_list):
 
 								# Request last ACK sending the All-1 again.
 								last_ack = None
-								last_ack = send_sigfox(the_socket, fragment, data, profile_uplink.timeout, True)
+								last_ack = send_sigfox(the_socket, fragment, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
 								# the_socket.sendto(data, address)
 
 					# After sending the lost fragments, send the last ACK-REQ again

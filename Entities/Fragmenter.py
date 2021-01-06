@@ -51,10 +51,10 @@ class Fragmenter:
 					header = Header(self.profile, rule_id="00", dtag="0", w=w, fcn=fcn, c=0)
 			else:
 				if len(fragment_payload) < payload_max_length or i == (len(range(number_of_fragments)) - 1):
-					header = Header(self.profile, rule_id="0000000", dtag="0", w=w, fcn="11111", c=0)
+					header = Header(self.profile, rule_id="0010000", dtag="0", w=w, fcn="11111", c=0)
 
 				else:
-					header = Header(self.profile, rule_id="0000000", dtag="0", w=w, fcn=fcn, c=0)	
+					header = Header(self.profile, rule_id="0010000", dtag="0", w=w, fcn=fcn, c=0)	
 
 			
 
