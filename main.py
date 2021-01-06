@@ -184,13 +184,8 @@ verbose = True
 filename = 'Packets/150_bytes.txt'
 # address = (ip, port)
 
-<<<<<<< HEAD
 # seq = 2163
 # print(seq)
-=======
-time.sleep(5)
-
->>>>>>> antonis_2_bytes_header
 pycom.heartbeat(False)
 
 pycom.rgbled(0x007f00) # green
@@ -454,7 +449,6 @@ while i < len(fragment_list) and tx_status_ok == False:
 
 							# Try sending again the lost fragment.
 							try:
-<<<<<<< HEAD
 								# fragment_to_be_resent = fragment_list[(2 ** profile_uplink.N - 1) * ack_window + j]
 								# A fragment has the format "fragment = [header, payload]".
 								print("{}".format((2 ** profile_uplink.N - 1) * ack_window + j))
@@ -497,12 +491,6 @@ while i < len(fragment_list) and tx_status_ok == False:
 									last_ack = send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
 									break
 								send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE, False)
-=======
-								fragment_to_be_resent = fragment_list[(2 ** profile_uplink.N - 1) * ack_window + j]
-								data_to_be_resent = bytes(fragment_to_be_resent[0] + fragment_to_be_resent[1])
-								print(data_to_be_resent)
-								send_sigfox(the_socket, data_to_be_resent, data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE, False)
->>>>>>> antonis_2_bytes_header
 								# the_socket.send(data_to_be_resent)
 								# the_socket.sendto(data_to_be_resent, address)
 								resent = True
@@ -522,7 +510,6 @@ while i < len(fragment_list) and tx_status_ok == False:
 								ack = None
 								last_ack = None
 								last_ack = send_sigfox(the_socket, fragment, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
-<<<<<<< HEAD
 								# 
 								break
 								# Request last ACK sending the All-1 again.
@@ -532,8 +519,6 @@ while i < len(fragment_list) and tx_status_ok == False:
 								# if fragment.is_all_1():
 								# 	print('fragment All-1 found, break to stop sending fragments')
 								# 	break
-=======
->>>>>>> antonis_2_bytes_header
 								# the_socket.sendto(data, address)
 
 					# After sending the lost fragments, send the last ACK-REQ again
