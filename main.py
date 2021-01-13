@@ -93,7 +93,7 @@ def send_sigfox(the_socket, fragment, data, timeout, downlink_enable = False, do
 		time.sleep(sleep_after)
 		print("current_fragment:{}".format(current_fragment))
 		fragments_info_array.append(current_fragment)
-		print("------ send message ------")	
+		print("------ send message ------")
 		return ack
 
 	else:
@@ -131,7 +131,7 @@ def send_sigfox(the_socket, fragment, data, timeout, downlink_enable = False, do
 		print("current_fragment:{}".format(current_fragment))
 		fragments_info_array.append(current_fragment)
 		print("------ send message ------")
-		
+
 		return None
 
 
@@ -181,7 +181,7 @@ verbose = True
 # ip = sys.argv[1]
 # port = int(sys.argv[2])
 # filename = sys.argv[3]
-filename = 'example4.txt'
+filename = 'Packets/150_bytes.txt'
 # address = (ip, port)
 
 # seq = 2163
@@ -192,9 +192,15 @@ pycom.rgbled(0x007f00) # green
 # Read the file to be sent.
 pycom.rgbled(0x7f7f00) # yellow
 print("Reading file {}".format(filename))
-with open(filename, "rb") as data:
-	f = data.read()
-	payload = bytearray(f)
+#In case of 0-byte file, create an empty Payload
+try:
+	with open(filename, "rb") as data:
+		f = data.read()
+		payload = bytearray(f)
+
+except OSError as e:
+		print('Error number {}, {}'.format(e.args[0],e))
+		payload = ''
 
 pycom.rgbled(0x007f00) # green
 
@@ -218,8 +224,14 @@ ack = None
 last_ack = None
 i = 0
 current_window = 0
-profile_uplink = Sigfox_Entity("UPLINK", "ACK ON ERROR")
-profile_downlink = Sigfox_Entity("DOWNLINK", "NO ACK")
+if total_size <= 300:
+	header_bytes = 1
+elif total_size > 300:
+	header_bytes = 2
+
+print("total_size = {} and header_bytes = {}".format(total_size, header_bytes))
+profile_uplink = Sigfox_Entity("UPLINK", "ACK ON ERROR", header_bytes)
+profile_downlink = Sigfox_Entity("DOWNLINK", "NO ACK", header_bytes)
 # init Sigfox for RCZ1 (Europe)
 sigfox = Sigfox(mode=Sigfox.SIGFOX, rcz=Sigfox.RCZ1)
 
@@ -236,7 +248,6 @@ the_socket.setblocking(True)
 
 # Start Time
 chrono.start()
-
 
 
 
@@ -265,7 +276,7 @@ fragment = None
 start_sending_time = chrono.read()
 # Start sending fragments.
 CURRENT_STATE = STATE_SEND
-while i < len(fragment_list):
+while i < len(fragment_list) and tx_status_ok == False:
 	current_fragment = {}
 	laps.append(chrono.read())
 	print("laps - > {}".format(laps))
@@ -291,7 +302,7 @@ while i < len(fragment_list):
 			print("SCHC Fragment Payload: {}".format(fragment_list[i][1]))
 
 		current_size += len(fragment_list[i][1])
-		percent = round(float(current_size) / float(total_size) * 100, 2)
+		if (total_size!= 0): percent = round(float(current_size) / float(total_size) * 100, 2)
 		wait_receive = False
 		# Send the data.
 		# If a fragment is an All-0 or an All-1:
@@ -447,33 +458,34 @@ while i < len(fragment_list):
 								fragment_to_be_resent = Fragment(profile_uplink, fragment_list[(2 ** profile_uplink.N - 1) * ack_window + j])
 								print("RuleID:{}, WINDOW:{}, FCN:{}".format(fragment_to_be_resent.header.RULE_ID,fragment_to_be_resent.header.W,fragment_to_be_resent.header.FCN))
 								print("data_to_be_resent:{}".format(data_to_be_resent))
-								
+
 								if fragment_to_be_resent.is_all_0():
 									print('fragment All-0 found')
 									print("Check if it is from current window or not to resend.")
 									# there is no way to know is the All-0 is lost until the next ack,
 									# therefore, to avoid resending the the All-0, it breaks
 
-									# except when the current window is not the acked window. 
+									# except when the current window is not the acked window.
 									# this means that the All-0 was lost, therefore the receiver
 									# was not able to send the ACK before, i.e., in the corresponding window
 									# because no All-0 was received.
 
 									# in intermediate windows, the All-0 shouldn't be send again
 									if current_window != ack_window:
-										# We have the case here the acked window is not the same as the 
+										# We have the case here the acked window is not the same as the
 										# current window.
 										# we should resend the All-0 and wait for an ACK?
 										last_ack = None
 										ack = None
 										last_ack = send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
 									break
-								
+
 								elif fragment_to_be_resent.is_all_1():
 									print('fragment All-1 found')
 									print("request last ACK, sending All-1 again.")
 									# print("fragment:{} - data:{}".format(fragment, data))
 									# Request last ACK sending the All-1 again.
+									retransmitting = True
 									last_ack = None
 									ack = None
 									last_ack = send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
@@ -498,7 +510,7 @@ while i < len(fragment_list):
 								ack = None
 								last_ack = None
 								last_ack = send_sigfox(the_socket, fragment, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
-								# 
+								#
 								break
 								# Request last ACK sending the All-1 again.
 								# last_ack = None
@@ -519,8 +531,8 @@ while i < len(fragment_list):
 					# 	last_ack = send_sigfox(the_socket, fragment, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
 					# 	# the_socket.sendto(data, address)
 					# 	retransmitting = True
-						
-						
+
+
 
 						# break
 
@@ -547,7 +559,14 @@ while i < len(fragment_list):
 									print("Last ACK window does not correspond to last window. (While retransmitting)")
 									break
 									exit(1)
-						
+							else:
+								print("Sending All-1 again.")
+								print("RuleID:{}, WINDOW:{}, FCN:{}".format(fragment.header.RULE_ID,fragment.header.W,fragment.header.FCN))
+								retransmitting = True
+								ack = None
+								ack = send_sigfox(the_socket, fragment, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
+								break
+
 						elif ack:
 							print('ack')
 							c = ack[index_c]
@@ -565,6 +584,14 @@ while i < len(fragment_list):
 									print("Last ACK window does not correspond to last window. (While retransmitting)")
 									break
 									exit(1)
+							else:
+								print("Sending All-1 again.")
+								print("RuleID:{}, WINDOW:{}, FCN:{}".format(fragment.header.RULE_ID,fragment.header.W,fragment.header.FCN))
+								retransmitting = True
+								ack = None
+								ack = send_sigfox(the_socket, fragment, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
+								break
+
 						else:
 							# NO ACK was received after resending the All-1
 							# Or after sending al All-0 that was lost before.
@@ -629,7 +656,7 @@ while i < len(fragment_list):
 					# Should send an ACK REQ after Retransmission Timer expires?
 					# The Number of ACK REQ that should be send depends in the MAX ACK REQ variable.?
 					# time.sleep(profile_uplink.RETRANSMISSION_TIMER_VALUE)
-					time.sleep(5)
+					#time.sleep(5)
 					print("Attempt number: {}".format(attempts))
 					print("No ACK received (RETRANSMISSION_TIMER_VALUE expired). Sending last SCHC fragment...")
 					# current_fragment = {}
@@ -679,7 +706,7 @@ for index, fragment in enumerate(fragments_info_array):
 	else:
 		print('{} - W:{}, FCN:{}, TT:{}s'.format(index, fragment['W'],fragment['FCN'],fragment['send_time']))
 
-	# write_string = write_string + '{} - W:{}, FCN:{}, send Time:{}, downlink_enable:{}, ack_received:{}'.format(index, 
+	# write_string = write_string + '{} - W:{}, FCN:{}, send Time:{}, downlink_enable:{}, ack_received:{}'.format(index,
 	# 	fragment['W'],fragment['FCN'],fragment['send_time'],fragment['downlink_enable'],fragment['ack_received']) + "\n"
 	results_json["{}".format(index)] = fragment
 	# results_json[index] = fragment

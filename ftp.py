@@ -17,8 +17,8 @@ import network
 import network
 import time
 # setup as a station
-ssid = 'Orange-B6EA'
-password = 'e2PNwgLz'
+ssid = 'PlatisWifi'
+password = 'platis2001'
 wlan = network.WLAN(mode=network.WLAN.STA)
 wlan.connect(ssid, auth=(network.WLAN.WPA2, password))
 while not wlan.isconnected():
