@@ -181,7 +181,7 @@ verbose = True
 # ip = sys.argv[1]
 # port = int(sys.argv[2])
 # filename = sys.argv[3]
-filename = 'Packets/150_bytes.txt'
+filename = 'Packets/77_bytes.txt'
 # address = (ip, port)
 
 # seq = 2163
@@ -694,7 +694,7 @@ end_sending_time = chrono.read()
 print('Stats')
 # print(fragments_info_array)
 
-filename_stats = "stats_file_v2.7.json"
+filename_stats = "LoPy_stats_file_v4.1.json"
 print("Writing to file {}".format(filename_stats))
 f = open(filename_stats, "w")
 write_string = ''
