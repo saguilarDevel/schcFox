@@ -33,7 +33,7 @@ def zfill(string, width):
 def send_sigfox(the_socket, fragment, data, timeout, downlink_enable = False, downlink_mtu = 8):
 	""" Function to send messages to the sigfox cloud  """
 	# Set the timeout for RETRANSMISSION_TIMER_VALUE.
-	sleep_after = 0
+	sleep_after = 2
 	socket_timeout = timeout
 	socket_timeout = 60
 	the_socket.settimeout(socket_timeout)
@@ -181,7 +181,8 @@ verbose = True
 # ip = sys.argv[1]
 # port = int(sys.argv[2])
 # filename = sys.argv[3]
-filename = 'Packets/77_bytes.txt'
+filename = 'Packets/512_bytes.txt'
+filename_stats = "LoPy_stats_file_v4.7.json"
 # address = (ip, port)
 
 # seq = 2163
@@ -336,7 +337,7 @@ while i < len(fragment_list) and tx_status_ok == False:
 		attempts = 0
 
 		# Set the timeout for RETRANSMISSION_TIMER_VALUE.
-		the_socket.settimeout(profile_uplink.RETRANSMISSION_TIMER_VALUE)
+		#the_socket.settimeout(profile_uplink.RETRANSMISSION_TIMER_VALUE)
 
 		while attempts < profile_uplink.MAX_ACK_REQUESTS:
 			print("attempts:{}".format(attempts))
@@ -396,6 +397,12 @@ while i < len(fragment_list) and tx_status_ok == False:
 				00
 				0
 				1011111000000000000000000000000000000000000000000000000000
+				ACK example 2 bytes header
+				0010000000101111111111111111111100000000000000000000000000000000
+				RuleID:00100000
+				W: 001
+				C: 0
+
 				"""
 				print("ACK received. {}".format(ack))
 				# index = profile_uplink.RULE_ID_SIZE + profile_uplink.T + profile_uplink.M
@@ -694,7 +701,7 @@ end_sending_time = chrono.read()
 print('Stats')
 # print(fragments_info_array)
 
-filename_stats = "LoPy_stats_file_v4.1.json"
+
 print("Writing to file {}".format(filename_stats))
 f = open(filename_stats, "w")
 write_string = ''

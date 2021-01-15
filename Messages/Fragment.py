@@ -71,4 +71,18 @@ class Fragment:
         #     fcn_set.add(x)
         # return len(fcn_set) == 1 and "0" in fcn_set
 
+    def is_sender_abort(self):
+        fcn = self.header.FCN
+        padding = self.payload.decode()
+        for N in fcn:
+            print("N: {}".format(N))
+            if N == 0:
+                return False
+        # All the fcn values are 1
+        for bit in padding:
+            print('bit: {}'.format(bit))
+            if bit == 1:
+                return False
+        # All padding is 0
+        return True
 
