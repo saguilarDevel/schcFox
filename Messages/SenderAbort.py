@@ -1,5 +1,7 @@
 from Messages.Header import Header
 
+def bitstring_to_bytes(s):
+    return int(s, 2).to_bytes((len(s) + 7) // 8, byteorder='big')
 
 class SenderAbort:
     profile = None
@@ -21,6 +23,18 @@ class SenderAbort:
                              w=w,
                              fcn="1"*profile.N,
                              c="")
-
         while len(self.header.string + self.padding) < profile.MTU:
             self.padding += '0'
+        
+        print(self.header.string + self.padding)
+
+    def to_string(self):
+        return self.header.string + self.padding
+
+    def to_bytes(self):
+        bitstring = self.header.string + self.padding
+        abort_bytes = bytearray(0)
+        for i in range(0,len(bitstring)/8):
+            abort_bytes.append(int(bitstring[i*8:(i*8)+8],2))
+        return abort_bytes
+        

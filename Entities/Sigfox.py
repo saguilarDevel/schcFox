@@ -48,8 +48,8 @@ class Sigfox_Entity(Protocol):
 
             if mode == "ACK ON ERROR" and header_bytes == 1:
                 self.HEADER_LENGTH = 8
-                self.RULE_ID_SIZE = 2
-                self.T = 1
+                self.RULE_ID_SIZE = 3
+                self.T = 0
                 self.N = 3
                 self.M = 2  # recommended to be single
                 self.WINDOW_SIZE = 2 ** self.N - 1
@@ -59,8 +59,8 @@ class Sigfox_Entity(Protocol):
 
             if mode == "ACK ON ERROR" and header_bytes == 2:
                 self.HEADER_LENGTH = 16
-                self.RULE_ID_SIZE = 7
-                self.T = 1
+                self.RULE_ID_SIZE = 8
+                self.T = 0
                 self.N = 5
                 self.M = 3  # recommended to be single
                 self.WINDOW_SIZE = 2 ** self.N - 1

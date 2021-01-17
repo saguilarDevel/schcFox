@@ -26,13 +26,13 @@ class Header:
         if direction == "DOWNLINK":
             self.FCN = ""
             self.C = c
-
+        # print('rule_id: {}, len(rule_id): {}, profile.RULE_ID_SIZE: {}'.format(rule_id, len(rule_id), profile.RULE_ID_SIZE))
         if len(rule_id) != profile.RULE_ID_SIZE:
             print('RULE must be of length RULE_ID_SIZE')
         else:
             self.RULE_ID = rule_id
-
-        if profile.T == "0":
+        # print("profile.T: {}".format(profile.T))
+        if profile.T == 0:
             self.DTAG = ""
         elif len(dtag) != profile.T:
             print('DTAG must be of length T')
