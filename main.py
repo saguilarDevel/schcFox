@@ -201,8 +201,9 @@ verbose = True
 # ip = sys.argv[1]
 # port = int(sys.argv[2])
 # filename = sys.argv[3]
-filename = 'Packets/22_bytes.txt'
-filename_stats = "LoPy_stats_file_v4.8.json"
+filename = 'Packets/165_bytes.txt'
+# filename = 'example4.txt' # 88 bytes 
+filename_stats = "LoPy_stats_file_v7.1.json"
 # address = (ip, port)
 
 # seq = 2163
@@ -502,34 +503,36 @@ while i < len(fragment_list) and tx_status_ok == False:
 								print("RuleID:{}, WINDOW:{}, FCN:{}".format(fragment_to_be_resent.header.RULE_ID,fragment_to_be_resent.header.W,fragment_to_be_resent.header.FCN))
 								print("data_to_be_resent:{}".format(data_to_be_resent))
 
-								if fragment_to_be_resent.is_all_0():
-									print('fragment All-0 found')
-									print("Check if it is from current window or not to resend.")
-									# there is no way to know is the All-0 is lost until the next ack,
-									# therefore, to avoid resending the the All-0, it breaks
+								# if fragment_to_be_resent.is_all_0():
+								# 	print('fragment All-0 found')
+								# 	print("Check if it is from current window or not to resend.")
+								# 	# there is no way to know is the All-0 is lost until the next ack,
+								# 	# therefore, to avoid resending the the All-0, it breaks
 
-									# except when the current window is not the acked window.
-									# this means that the All-0 was lost, therefore the receiver
-									# was not able to send the ACK before, i.e., in the corresponding window
-									# because no All-0 was received.
+								# 	# except when the current window is not the acked window.
+								# 	# this means that the All-0 was lost, therefore the receiver
+								# 	# was not able to send the ACK before, i.e., in the corresponding window
+								# 	# because no All-0 was received.
 
-									# in intermediate windows, the All-0 shouldn't be send again
-									if current_window != ack_window:
-										# We have the case here the acked window is not the same as the
-										# current window.
-										# we should resend the All-0 and wait for an ACK?
-										last_ack = None
-										ack = None
-										try:
-											last_ack = send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE, profile_uplink, True)
-										except SCHCReceiverAbortReceived:
-											print('SCHC Receiver Abort Message Received')
-											break
-									break
+								# 	# in intermediate windows, the All-0 shouldn't be send again
+								# 	if current_window != ack_window:
+								# 		continue
+								# 		# We have the case here the acked window is not the same as the
+								# 		# current window.
+								# 		# we should resend the All-0 and wait for an ACK?
+								# 		# last_ack = None
+								# 		# ack = None
+								# 		# try:
+								# 		# 	last_ack = send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE, profile_uplink, True)
+								# 		# except SCHCReceiverAbortReceived:
+								# 		# 	print('SCHC Receiver Abort Message Received')
+								# 		# 	break
+								# 	break
 
-								elif fragment_to_be_resent.is_all_1():
+								if fragment_to_be_resent.is_all_1():
+									attempts += 1
 									print('fragment All-1 found')
-									print("request last ACK, sending All-1 again.")
+									print("request last ACK, sending All-1 again. attempts:{}".format(attempts))
 									# print("fragment:{} - data:{}".format(fragment, data))
 									# Request last ACK sending the All-1 again.
 									retransmitting = True
@@ -553,7 +556,8 @@ while i < len(fragment_list) and tx_status_ok == False:
 								pycom.rgbled(0x7f0000) # red
 								resent = False
 								retransmitting = False
-								print("IndexError, request last ACK, sending All-1 again.")
+								attempts += 1
+								print("IndexError, request last ACK, sending All-1 again. attempts:{}".format(attempts))
 								print("RuleID:{}, WINDOW:{}, FCN:{}".format(fragment.header.RULE_ID,fragment.header.W,fragment.header.FCN))
 								# print("fragment:{} - data:{}".format(fragment, data))
 								print("resend and fragment.is_all_1()")
@@ -622,6 +626,8 @@ while i < len(fragment_list) and tx_status_ok == False:
 									exit(1)
 							else:
 								print("Sending All-1 again.")
+								attempts += 1
+								print("attempts:{}".format(attempts))
 								print("RuleID:{}, WINDOW:{}, FCN:{}".format(fragment.header.RULE_ID,fragment.header.W,fragment.header.FCN))
 								retransmitting = True
 								ack = None
@@ -657,6 +663,8 @@ while i < len(fragment_list) and tx_status_ok == False:
 									exit(1)
 							else:
 								print("Sending All-1 again.")
+								attempts += 1
+								print("attempts:{}".format(attempts))
 								print("RuleID:{}, WINDOW:{}, FCN:{}".format(fragment.header.RULE_ID,fragment.header.W,fragment.header.FCN))
 								retransmitting = True
 								ack = None
