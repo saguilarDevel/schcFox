@@ -54,7 +54,7 @@ class Sigfox_Entity(Protocol):
                 self.M = 2  # recommended to be single
                 self.WINDOW_SIZE = 2 ** self.N - 1
                 self.BITMAP_SIZE = 2 ** self.N - 1  # from excel
-                self.MAX_ACK_REQUESTS = 3  # SHOULD be 2
+                self.MAX_ACK_REQUESTS = 5  # SHOULD be 2
                 self.MAX_WIND_FCN = 6  # SHOULD be
 
             if mode == "ACK ON ERROR" and header_bytes == 2:
@@ -65,7 +65,7 @@ class Sigfox_Entity(Protocol):
                 self.M = 3  # recommended to be single
                 self.WINDOW_SIZE = 2 ** self.N - 1
                 self.BITMAP_SIZE = 2 ** self.N - 1  # from excel
-                self.MAX_ACK_REQUESTS = 3  # SHOULD be 2
+                self.MAX_ACK_REQUESTS = 5  # SHOULD be 2
                 self.MAX_WIND_FCN = 6  # SHOULD be
 
         if direction == "DOWNLINK":

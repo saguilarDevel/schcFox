@@ -222,6 +222,7 @@ current_size = 0
 percent = 0
 ack = None
 last_ack = None
+all1_resent = False
 i = 0
 current_window = 0
 if total_size <= 300:
@@ -477,7 +478,7 @@ while i < len(fragment_list) and tx_status_ok == False:
 										# we should resend the All-0 and wait for an ACK?
 										last_ack = None
 										ack = None
-										last_ack = send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
+										ack = send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
 									break
 								
 								elif fragment_to_be_resent.is_all_1():
@@ -488,7 +489,9 @@ while i < len(fragment_list) and tx_status_ok == False:
 									retransmitting = True
 									last_ack = None
 									ack = None
-									last_ack = send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
+									ack = send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
+									all1_resent = True
+									print("Changed all1_resent to True!")
 									break
 								send_sigfox(the_socket, fragment_to_be_resent, data_to_be_resent, profile_uplink.RETRANSMISSION_TIMER_VALUE, False)
 								# the_socket.send(data_to_be_resent)
@@ -509,8 +512,8 @@ while i < len(fragment_list) and tx_status_ok == False:
 								# print("fragment:{} - data:{}".format(fragment, data))
 								ack = None
 								last_ack = None
-								last_ack = send_sigfox(the_socket, fragment, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
-								# 
+								ack = send_sigfox(the_socket, fragment, data, profile_uplink.RETRANSMISSION_TIMER_VALUE, True)
+								#
 								break
 								# Request last ACK sending the All-1 again.
 								# last_ack = None
@@ -585,6 +588,10 @@ while i < len(fragment_list) and tx_status_ok == False:
 									break
 									exit(1)
 							else:
+								if all1_resent == True:
+									print("All-1 Already Sent!")
+									break
+								print("All-1 HAS NOT BEEN Already Sent!")
 								print("Sending All-1 again.")
 								print("RuleID:{}, WINDOW:{}, FCN:{}".format(fragment.header.RULE_ID,fragment.header.W,fragment.header.FCN))
 								retransmitting = True
