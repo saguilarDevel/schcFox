@@ -54,6 +54,7 @@ print(rtc.now())
 # sigfox = Sigfox(mode=Sigfox.SIGFOX, rcz=Sigfox.RCZ4)
 # init Sigfox for RCZ1 (Europe)
 sigfox = Sigfox(mode=Sigfox.SIGFOX, rcz=Sigfox.RCZ1)
+# s.setsockopt(socket.SOL_SIGFOX, socket.SO_TX_REPEAT, 0)
 
 s = socket.socket(socket.AF_SIGFOX, socket.SOCK_RAW)
 s.setblocking(True)
@@ -63,7 +64,7 @@ s.settimeout(timeout)
 
 c = 10
 submerged_time = 0
-n = 21
+n = 5
 
 # Wait for the beacon to be submerged
 time.sleep(submerged_time)
@@ -83,7 +84,7 @@ sleep_after = 0
 pycom.heartbeat(False)
 
 #each how many messages the LoPy will request an ACK
-send_ack_number = 5
+send_ack_number = 10
 
 # Send n messages to the Sigfox network to test connectivity
 for i in range(n):
@@ -110,6 +111,7 @@ for i in range(n):
 	if i % send_ack_number == 0:
 		# wait for a downlink after sending the uplink packet
 		s.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, True)
+		# s.setsockopt(socket.SOL_SIGFOX, socket.SO_TX_REPEAT, 0)
 		try:
 			current_fragment['downlink_enable'] = True
 			pycom.rgbled(0x7700CC) # purple
@@ -142,6 +144,7 @@ for i in range(n):
 	else:
 		# make the socket uplink only
 		s.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, False)
+		# s.setsockopt(socket.SOL_SIGFOX, socket.SO_TX_REPEAT, 0)
 		try:
 			current_fragment['downlink_enable'] = False
 			pycom.rgbled(0x00ffff) # cyan
@@ -170,7 +173,7 @@ for i in range(n):
 
 s.close()
 print("Done")
-filename_stats = "LoPy_stats_file_v5.14.json"
+filename_stats = "LoPy_stats_file_v5.17.json"
 print("Writing to file {}".format(filename_stats))
 f = open(filename_stats, "w")
 write_string = ''
