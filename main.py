@@ -254,8 +254,8 @@ elif total_size > 300:
 print("total_size = {} and header_bytes = {}".format(total_size, header_bytes))
 profile_uplink = Sigfox_Entity("UPLINK", "ACK ON ERROR", header_bytes)
 profile_downlink = Sigfox_Entity("DOWNLINK", "NO ACK", header_bytes)
-# init Sigfox for RCZ1 (Europe)
-sigfox = Sigfox(mode=Sigfox.SIGFOX, rcz=Sigfox.RCZ1)
+# init Sigfox for RCZ4 (Chile)
+sigfox = Sigfox(mode=Sigfox.SIGFOX, rcz=Sigfox.RCZ4)
 
 
 # create a Sigfox socket
