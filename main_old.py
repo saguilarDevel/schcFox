@@ -268,13 +268,10 @@ the_socket.setblocking(True)
 
 # the_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-# Send the "CLEAN" message
-the_socket.send(bytes.fromhex("{}a434c45414e".format(header_bytes)))
-# Wait for the cleaning function to end
-time.sleep(10)
-
 # Start Time
 chrono.start()
+
+
 
 # Fragment the file.
 fragmenter = Fragmenter(profile_uplink, payload)
