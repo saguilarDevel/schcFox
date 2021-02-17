@@ -251,7 +251,7 @@ for filename in filenames:
 		# Send the "CLEAN" message
 		the_socket.send(bytes.fromhex("{}a434c45414e".format(header_bytes)))
 		# Wait for the cleaning function to end
-		time.sleep(10)
+		time.sleep(30)
 
 		# Start Time
 		chrono.start()
