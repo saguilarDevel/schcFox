@@ -146,7 +146,7 @@ def send_sigfox(the_socket, fragment, data, timeout, profile, downlink_enable = 
 			pycom.rgbled(0xff0000)
 			if e.args[0] == 11:
 				# Retry Logic
-				print('Error {}, {}'.format(e.args[0],e))	
+				print('Error {}, {}'.format(e.args[0],e))
 		time.sleep(sleep_after)
 		print("current_fragment:{}".format(current_fragment))
 		fragments_info_array.append(current_fragment)
@@ -170,8 +170,8 @@ CURRENT_STATE = ""
 NEXT_STATE = ""
 
 
-# STATE INIT 
-# INIT variables 
+# STATE INIT
+# INIT variables
 # Read file to tx
 # Fragmentation process
 CURRENT_STATE = STATE_INIT
@@ -201,8 +201,8 @@ verbose = True
 # ip = sys.argv[1]
 # port = int(sys.argv[2])
 # filename = sys.argv[3]
-filename = 'Packets/165_bytes.txt'
-# filename = 'example4.txt' # 88 bytes 
+filename = 'Packets/77_bytes.txt'
+# filename = 'example4.txt' # 88 bytes
 filename_stats = "LoPy_stats_file_v7.1.json"
 # address = (ip, port)
 
@@ -314,11 +314,11 @@ while i < len(fragment_list) and tx_status_ok == False:
 		# current_fragment['W'] = fragment.header.W
 		# current_fragment['FCN'] = fragment.header.FCN
 		# current_fragment['data'] = data
-		
+
 		if verbose:
 			print("--------------------------")
 			print(str(i) + "th fragment:")
-			
+
 			print("RuleID:{}, DTAG:{}, WINDOW:{}, FCN:{}".format(fragment.header.RULE_ID,fragment.header.DTAG,fragment.header.W,fragment.header.FCN))
 			print("SCHC Fragment: {}".format(data))
 			print("SCHC Fragment Payload: {}".format(fragment_list[i][1]))
@@ -346,11 +346,11 @@ while i < len(fragment_list) and tx_status_ok == False:
 		pycom.rgbled(0x7f7f00) # yellow
 		print(str(current_size) + " / " + str(total_size) + ", " + str(percent) + "%")
 
-	
+
 
 	# No ACK was received for the last window
 	# it should, so a SCHC ACK must be send.
-	# Not sure if RETRANSMISSION_TIMER_VALUE was expired, but the 
+	# Not sure if RETRANSMISSION_TIMER_VALUE was expired, but the
 	# reception window has expired, so there is no opportunity
 	# from the receiver to send an ACK.
 	# elif fragment.is_all_1() and ack is None:
@@ -369,7 +369,7 @@ while i < len(fragment_list) and tx_status_ok == False:
 			# Try receiving an ACK from the receiver.
 			# Check if the ACK = None
 			# An ACK was received, from All-0 or All-1
-				
+
 			# No ACK was received for the intermediate window
 			if fragment.is_all_0() and ack is None:
 				print('No ACK received, continue sending fragments')
@@ -383,7 +383,7 @@ while i < len(fragment_list) and tx_status_ok == False:
 			elif ack is not None:
 
 			# try:
-						
+
 				# ack, address = the_socket.recvfrom(profile_downlink.MTU)
 				""" ACK Messages Format
 				Uplink ACK-on-Error Mode: Single-byte SCHC Header
@@ -406,7 +406,7 @@ while i < len(fragment_list) and tx_status_ok == False:
 				ID|W|
 				0000000000001111111111111111111111111111111111111111111111111111
 					^_index
-					
+
 				ID|W|c
 				0000000000001111111111111111111111111111111111111111111111111111
 					^_index
@@ -455,7 +455,7 @@ while i < len(fragment_list) and tx_status_ok == False:
 					else:
 						print("Last ACK window {} does not correspond to last window {}".format(ack_window,current_window))
 						senderAbort = SenderAbort(profile_uplink, fragment.header.RULE_ID,fragment.header.DTAG,fragment.header.W)
-			
+
 						print("--- senderAbort:{}".format(senderAbort.to_string()))
 						print("--- senderAbort:{}".format(senderAbort.to_bytes()))
 						send_sigfox(the_socket, senderAbort, bytes(senderAbort.to_bytes()), profile_uplink.RETRANSMISSION_TIMER_VALUE, profile_uplink, False)
@@ -468,7 +468,7 @@ while i < len(fragment_list) and tx_status_ok == False:
 				elif c == '1' and fragment.is_all_0():
 					print("You shouldn't be here. (All-0 with C = 1)")
 					senderAbort = SenderAbort(profile_uplink, fragment.header.RULE_ID,fragment.header.DTAG,fragment.header.W)
-			
+
 					print("--- senderAbort:{}".format(senderAbort.to_string()))
 					print("--- senderAbort:{}".format(senderAbort.to_bytes()))
 					send_sigfox(the_socket, senderAbort, bytes(senderAbort.to_bytes()), profile_uplink.RETRANSMISSION_TIMER_VALUE, profile_uplink, False, profile_downlink.MTU, True)
@@ -617,7 +617,7 @@ while i < len(fragment_list) and tx_status_ok == False:
 								else:
 									print("Last ACK window does not correspond to last window. (While retransmitting)")
 									senderAbort = SenderAbort(profile_uplink, fragment.header.RULE_ID,fragment.header.DTAG,fragment.header.W)
-			
+
 									print("--- senderAbort:{}".format(senderAbort.to_string()))
 									print("--- senderAbort:{}".format(senderAbort.to_bytes()))
 									send_sigfox(the_socket, senderAbort, bytes(senderAbort.to_bytes()), profile_uplink.RETRANSMISSION_TIMER_VALUE, profile_uplink, False, profile_downlink.MTU, True)
@@ -654,7 +654,7 @@ while i < len(fragment_list) and tx_status_ok == False:
 								else:
 									print("Last ACK window does not correspond to last window. (While retransmitting)")
 									senderAbort = SenderAbort(profile_uplink, fragment.header.RULE_ID,fragment.header.DTAG,fragment.header.W)
-			
+
 									print("--- senderAbort:{}".format(senderAbort.to_string()))
 									print("--- senderAbort:{}".format(senderAbort.to_bytes()))
 									send_sigfox(the_socket, senderAbort, bytes(senderAbort.to_bytes()), profile_uplink.RETRANSMISSION_TIMER_VALUE, profile_uplink, False, profile_downlink.MTU, True)
@@ -718,7 +718,7 @@ while i < len(fragment_list) and tx_status_ok == False:
 						# 		print("A sender-abort MUST be sent...")
 						# 		break
 						# 		exit(1)
-			
+
 				# Proceed to next window.
 				print("Proceeding to next window")
 				resent = False
@@ -729,7 +729,7 @@ while i < len(fragment_list) and tx_status_ok == False:
 			# If no ACK was received
 			else:
 				print("NO ACK RECEIVED")
-				
+
 				# except socket.timeout:
 				pycom.rgbled(0x7f0000) # red
 				attempts += 1
@@ -775,7 +775,7 @@ while i < len(fragment_list) and tx_status_ok == False:
 			print("MAX_ACK_REQUESTS reached. Goodbye.")
 			print("A sender-abort MUST be sent...")
 			senderAbort = SenderAbort(profile_uplink, fragment.header.RULE_ID,fragment.header.DTAG,fragment.header.W)
-			
+
 			print("--- senderAbort:{}".format(senderAbort.to_string()))
 			print("--- senderAbort:{}".format(senderAbort.to_bytes()))
 			send_sigfox(the_socket, senderAbort, bytes(senderAbort.to_bytes()), profile_uplink.RETRANSMISSION_TIMER_VALUE, profile_uplink, False, profile_downlink.MTU, True)

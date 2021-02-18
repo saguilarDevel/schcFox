@@ -146,7 +146,7 @@ def send_sigfox(the_socket, fragment, data, timeout, profile, downlink_enable = 
 			pycom.rgbled(0xff0000)
 			if e.args[0] == 11:
 				# Retry Logic
-				print('Error {}, {}'.format(e.args[0],e))	
+				print('Error {}, {}'.format(e.args[0],e))
 		time.sleep(sleep_after)
 		print("current_fragment:{}".format(current_fragment))
 		fragments_info_array.append(current_fragment)
@@ -170,8 +170,8 @@ CURRENT_STATE = ""
 NEXT_STATE = ""
 
 
-# STATE INIT 
-# INIT variables 
+# STATE INIT
+# INIT variables
 # Read file to tx
 # Fragmentation process
 CURRENT_STATE = STATE_INIT
@@ -188,7 +188,9 @@ pycom.heartbeat(False)
 
 for filename in filenames:
 	repetitions = 20 if filename == 'Packets/77_bytes.txt' else 10
-	for i in range(repetitions):
+	input("Press enter to continue with filename {}...".format(filename))
+	for repetition in range(repetitions):
+		print("=====REPETITION {}=====".format(repetition))
 
 		pycom.rgbled(0x007f00) # green
 		# Read the file to be sent.
@@ -249,7 +251,9 @@ for filename in filenames:
 		# the_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 		# Send the "CLEAN" message
-		the_socket.send(bytes.fromhex("{}a434c45414e".format(header_bytes)))
+		print("Sending CLEAN message")
+		the_socket.send(ubinascii.unhexlify("{}a434c45414e".format(header_bytes)))
+
 		# Wait for the cleaning function to end
 		time.sleep(30)
 
@@ -373,12 +377,12 @@ for filename in filenames:
 						Rule ID size:  3 bits
 						Dtag: 0 bits
 						Window index (W) size (M): 2 bits
-		
-		
+
+
 						ACK Success: [ Rule ID | Dtag |   W  | C-1 | (P-0) ]
 						ACK Failure: [ Rule ID | Dtag |   W  | C-0 | Bitmap | (P-0) ]
 						Recv Abort : [ Rule ID | Dtag |  W-1 | C-1 | (P-1) ]
-		
+
 						Example ACK:
 						0000000000001111111111111111111111111111111111111111111111111111
 						RuleID: 000
@@ -389,7 +393,7 @@ for filename in filenames:
 						ID|W|
 						0000000000001111111111111111111111111111111111111111111111111111
 							^_index
-							
+
 						ID|W|c
 						0000000000001111111111111111111111111111111111111111111111111111
 							^_index
@@ -400,7 +404,7 @@ for filename in filenames:
 						Bitmap: 1011111
 						FCN lost: 101
 						0000001011111000000000000000000000000000000000000000000000000000
-		
+
 						000
 						00
 						0
@@ -410,7 +414,7 @@ for filename in filenames:
 						RuleID:00100000
 						W: 001
 						C: 0
-		
+
 						"""
 						print("ACK received. {}".format(ack))
 						# index = profile_uplink.RULE_ID_SIZE + profile_uplink.T + profile_uplink.M
@@ -774,7 +778,7 @@ for filename in filenames:
 		print('Stats')
 		# print(fragments_info_array)
 
-		filename_stats = "stats/LoPy_stats_file_v7.1_{}_{}.json".format(total_size, i)
+		filename_stats = "stats/LoPy_stats_file_v7.1_{}_{}.json".format(total_size, repetition)
 
 		print("Writing to file {}".format(filename_stats))
 		f = open(filename_stats, "w")
@@ -819,7 +823,6 @@ for filename in filenames:
 		# print("total_transmission_results:{}".format(total_transmission_results))
 		f.write(json.dumps(total_transmission_results))
 		f.close()
-		pycom.heartbeat(True)
 		# Close the socket and wait for the file to be reassembled
 		the_socket.close()
 		time.sleep(30)
