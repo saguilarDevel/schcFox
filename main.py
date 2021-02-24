@@ -286,6 +286,10 @@ for filename in filenames:
 		# Start sending fragments.
 		CURRENT_STATE = STATE_SEND
 		while i < len(fragment_list) and tx_status_ok == False:
+			# Wait...
+			time.sleep(20)
+			start_sending_time += 20
+
 			current_fragment = {}
 			laps.append(chrono.read())
 			print("laps - > {}".format(laps))
@@ -825,7 +829,7 @@ for filename in filenames:
 		f.close()
 		# Close the socket and wait for the file to be reassembled
 		the_socket.close()
-		time.sleep(30)
+		time.sleep(60)
 		# f = open(filename_stats)
 		# print(f.readlines())
 		# f.close()
