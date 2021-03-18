@@ -24,7 +24,9 @@ from Error.errors import SCHCReceiverAbortReceived
 # Chronometers for testing
 from machine import Timer
 import time
+from Entities.SCHCTimer import SCHCTimer
 
+timer = SCHCTimer(0)
 
 def zfill(string, width):
 	if len(string) < width:
@@ -34,6 +36,9 @@ def zfill(string, width):
 
 def send_sigfox(the_socket, fragment, data, timeout, profile, downlink_enable = False, downlink_mtu = 8, abort=False):
 	""" Function to send messages to the sigfox cloud  """
+
+	global start_sending_time
+	wait_between = 20
 	# Set the timeout for RETRANSMISSION_TIMER_VALUE.
 	sleep_after = 2
 	socket_timeout = timeout
@@ -72,8 +77,12 @@ def send_sigfox(the_socket, fragment, data, timeout, profile, downlink_enable = 
 			pycom.rgbled(0x7700CC) # purple
 			print("Sending with ack request at: {}".format(chrono.read()))
 			current_fragment['sending_start'] = chrono.read()
+
+			timer.wait(wait_between)
+			start_sending_time += wait_between
 			the_socket.send(data)
 			ack = the_socket.recv(downlink_mtu)
+
 			current_fragment['sending_end'] = chrono.read()
 			current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
 			current_fragment['rssi'] = sigfox.rssi()
@@ -110,7 +119,8 @@ def send_sigfox(the_socket, fragment, data, timeout, profile, downlink_enable = 
 			if e.args[0] == 11:
 				# Retry Logic
 				print('Error {}, {}'.format(e.args[0],e))
-		time.sleep(sleep_after)
+
+		timer.wait(sleep_after)
 		print("current_fragment:{}".format(current_fragment))
 		fragments_info_array.append(current_fragment)
 		print("------ send message ------")
@@ -128,7 +138,11 @@ def send_sigfox(the_socket, fragment, data, timeout, profile, downlink_enable = 
 			pycom.rgbled(0x00ffff) # cyan
 			print("Sending with no ack request at: {}".format(chrono.read()))
 			current_fragment['sending_start'] = chrono.read()
+
+			timer.wait(wait_between)
+			start_sending_time += wait_between
 			the_socket.send(data)
+
 			current_fragment['sending_end'] = chrono.read()
 			current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
 			current_fragment['rssi'] = sigfox.rssi()
@@ -147,7 +161,7 @@ def send_sigfox(the_socket, fragment, data, timeout, profile, downlink_enable = 
 			if e.args[0] == 11:
 				# Retry Logic
 				print('Error {}, {}'.format(e.args[0],e))
-		time.sleep(sleep_after)
+		timer.wait(sleep_after)
 		print("current_fragment:{}".format(current_fragment))
 		fragments_info_array.append(current_fragment)
 		print("------ send message ------")
@@ -255,7 +269,7 @@ for filename in filenames:
 		the_socket.send(ubinascii.unhexlify("{}a434c45414e".format(header_bytes)))
 
 		# Wait for the cleaning function to end
-		time.sleep(30)
+		timer.wait(30)
 
 		# Start Time
 		chrono.start()
@@ -287,8 +301,7 @@ for filename in filenames:
 		CURRENT_STATE = STATE_SEND
 		while i < len(fragment_list) and tx_status_ok == False:
 			# Wait...
-			time.sleep(20)
-			start_sending_time += 20
+
 
 			current_fragment = {}
 			laps.append(chrono.read())
@@ -829,7 +842,7 @@ for filename in filenames:
 		f.close()
 		# Close the socket and wait for the file to be reassembled
 		the_socket.close()
-		time.sleep(60)
+		timer.wait(30)
 		# f = open(filename_stats)
 		# print(f.readlines())
 		# f.close()
