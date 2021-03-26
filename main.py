@@ -196,7 +196,7 @@ input("Press enter to continue....")
 
 verbose = True
 # filenames = ['Packets/77_bytes.txt', 'Packets/150_bytes.txt', 'Packets/231_bytes.txt', 'Packets/512_bytes.txt']
-filenames = ['Packets/150_bytes.txt', 'Packets/512_bytes.txt']
+filenames = ['Packets/512_bytes.txt']
 
 pycom.heartbeat(False)
 
