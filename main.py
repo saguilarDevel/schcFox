@@ -5,26 +5,23 @@
 # import time
 # import filecmp
 
-#Microphyton imports
-import pycom
-import sys
-import time
-import math
-from network import Sigfox
-import socket
-import ubinascii
 import json
+import socket
 
-from Entities.Fragmenter import Fragmenter
-from Entities.Sigfox import Sigfox_Entity
-from Messages.Fragment import Fragment
-from Messages.SenderAbort import SenderAbort
-from Messages.ReceiverAbort import ReceiverAbort
-from Error.errors import SCHCReceiverAbortReceived
+# Microphyton imports
+import pycom
+import ubinascii
 # Chronometers for testing
 from machine import Timer
-import time
+from network import Sigfox
+
+from Entities.Fragmenter import Fragmenter
 from Entities.SCHCTimer import SCHCTimer
+from Entities.Sigfox import Sigfox_Entity
+from Error.errors import SCHCReceiverAbortReceived
+from Messages.Fragment import Fragment
+from Messages.ReceiverAbort import ReceiverAbort
+from Messages.SenderAbort import SenderAbort
 
 timer = SCHCTimer(0)
 
@@ -431,8 +428,8 @@ for filename in filenames:
 						RuleID:00100000
 						W: 001
 						C: 0
-
 						"""
+
 						print("ACK received. {}".format(ack))
 						# index = profile_uplink.RULE_ID_SIZE + profile_uplink.T + profile_uplink.M
 						index = profile_uplink.RULE_ID_SIZE + profile_uplink.T + profile_uplink.M + 1
@@ -796,6 +793,8 @@ for filename in filenames:
 		# print(fragments_info_array)
 
 		filename_stats = "stats/LoPy_stats_file_v7.1_{}_{}.json".format(total_size, repetition)
+
+		#ACA LLEGUEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 
 		print("Writing to file {}".format(filename_stats))
 		f = open(filename_stats, "w")
