@@ -794,8 +794,6 @@ for filename in filenames:
 
 		filename_stats = "stats/LoPy_stats_file_v7.1_{}_{}.json".format(total_size, repetition)
 
-		#ACA LLEGUEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-
 		print("Writing to file {}".format(filename_stats))
 		f = open(filename_stats, "w")
 		write_string = ''
