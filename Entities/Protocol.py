@@ -5,7 +5,6 @@ class Protocol:
 	TILE_SIZE = 0
 	M = 0
 	N = 0
-	M = 0
 	BITMAP_SIZE = 0
 	RCS_SIZE = 0
 	RCS_ALGORITHM = None
@@ -14,4 +13,5 @@ class Protocol:
 	MAX_WIND_FCN = 0
 	RETRANSMISSION_TIMER_VALUE = None
 	INACTIVITY_TIMER_VALUE = None
-	MTU = 0
+	UPLINK_MTU = 0
+	DOWNLINK_MTU = 0
