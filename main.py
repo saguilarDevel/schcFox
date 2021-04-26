@@ -35,7 +35,7 @@ for filename in exp_dict.keys():
         pycom.rgbled(0x007f00)  # green
 
         filename_stats = "stats/stats_{}_{}.json".format(
-            filename[filename.find('_') + 1:filename.find('_')], repetition)
+            filename[filename.find('/') + 1:filename.find('_')], repetition)
 
         sender = SCHCSender()
         sender.set_logging(filename="logs.log", json_file=filename_stats)
@@ -48,7 +48,7 @@ for filename in exp_dict.keys():
         else:
             clean_msg = str(binascii.hexlify("CLEAN"))[2:-1]
 
-        sender.LOGGER.debug("Sending {} message".format(clean_msg))
+        sender.LOGGER.debug("Sending {} message".format(binascii.unhexlify(clean_msg)))
 
         sender.send(binascii.unhexlify("{}a{}".format(sender.HEADER_BYTES, clean_msg)))
 

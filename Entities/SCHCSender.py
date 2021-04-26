@@ -155,8 +155,10 @@ class SCHCSender:
                                                                   fragment_sent.to_hex()))
 
         if fragment_sent.expects_ack() and not retransmit:
+            current_fragment['downlink_enable'] = True
             self.SOCKET.setsockopt(s.SOL_SIGFOX, s.SO_RX, True)
         else:
+            current_fragment['downlink_enable'] = False
             self.SOCKET.setsockopt(s.SOL_SIGFOX, s.SO_RX, False)
 
         try:
@@ -167,7 +169,6 @@ class SCHCSender:
 
             if fragment_sent.expects_ack():
                 if logging:
-                    current_fragment['downlink_enable'] = True
                     current_fragment['ack_received'] = False
                     current_fragment['fragment_size'] = len(data)
 
