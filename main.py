@@ -13,12 +13,13 @@ from config import exp_dict
 from schc_utils import *
 
 pycom.heartbeat(True)
+
+init_logging("logs.log")
 log_info("This is the SENDER script for a Sigfox Uplink transmission experiment")
 input("Press enter to continue....")
 
 pycom.heartbeat(False)
 
-init_logging("logs.log")
 
 for filename in exp_dict.keys():
     input("Press enter to continue with filename {}...".format(filename))

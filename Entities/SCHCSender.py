@@ -17,7 +17,7 @@ class SCHCSender:
     PROTOCOL = None
     PROFILE = None
     SOCKET = None
-    MESSAGE = None
+    MESSAGE = ''
     FRAGMENTS = []
     ATTEMPTS = None
     FRAGMENT_IDEX = None
@@ -60,6 +60,7 @@ class SCHCSender:
             self.LOGGER.CHRONO = Timer.Chrono()
             self.LOGGER.CHRONO.start()
 
+        self.MESSAGE = message
         fragmenter = Fragmenter(self.PROFILE, message)
         self.FRAGMENTS = fragmenter.fragment()
 
@@ -237,6 +238,7 @@ class SCHCSender:
                         if logging:
                             self.LOGGER.FRAGMENTS_INFO_ARRAY.append(current_fragment)
                             self.LOGGER.FINISHED = True
+                        self.FRAGMENT_IDEX += 1
                         return
                     # Otherwise,
                     else:

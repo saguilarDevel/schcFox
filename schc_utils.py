@@ -65,12 +65,3 @@ def bitstring_to_bytes(s):
 
 def is_monochar(s):
     return len(set(s)) == 1
-
-
-def send_ack(request, ack):
-    device = request["device"]
-    print(f"ack string -> {ack.to_string()}")
-    response_dict = {device: {'downlinkData': ack.to_bytes().hex()}}
-    response_json = json.dumps(response_dict)
-    print(f"response_json -> {response_json}")
-    return response_json
