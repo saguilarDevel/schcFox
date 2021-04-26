@@ -1,7 +1,7 @@
 from Entities.Protocol import Protocol
 
 
-class SigfoxProtocol(Protocol):
+class SigfoxProfile(Protocol):
     direction = None
     mode = None
 

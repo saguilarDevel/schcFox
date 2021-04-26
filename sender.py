@@ -7,7 +7,7 @@ from machine import Timer
 
 from Entities.Fragmenter import Fragmenter
 from Entities.SCHCTimer import SCHCTimer
-from Entities.Sigfox import SigfoxProtocol
+from Entities.Sigfox import SigfoxProfile
 from Entities.exceptions import *
 from Messages.ACK import ACK
 from Messages.Fragment import Fragment
@@ -62,6 +62,8 @@ def post(socket, fragment_sent, protocol, retransmit=False):
 
     if fragment_sent.expects_ack() and not retransmit:
         socket.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, True)
+    else:
+        socket.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, False)
 
     try:
         current_fragment['sending_start'] = chrono.read()
@@ -151,7 +153,7 @@ def post(socket, fragment_sent, protocol, retransmit=False):
                         # (C = 0 but transmission complete)
                         if last_bitmap[0] == '1' and all(last_bitmap):
                             log_error("ERROR: SCHC ACK shows no missing tile at the receiver.")
-                            post(socket, SenderAbort(fragment_sent.PROFILE, fragment_sent.HEADER))
+                            post(socket, SenderAbort(fragment_sent.PROFILE, fragment_sent.HEADER), protocol)
 
                         # Otherwise (fragments are lost),
                         else:
@@ -167,10 +169,10 @@ def post(socket, fragment_sent, protocol, retransmit=False):
                                     fragment_to_be_resent = Fragment(profile,
                                                                      fragment_list[window_size * ack_window + j])
                                     log_debug("Lost fragment: {}".format(fragment_to_be_resent.to_string()))
-                                    post(socket, fragment_to_be_resent, retransmit=True)
+                                    post(socket, fragment_to_be_resent, protocol, retransmit=True)
 
                             # Send All-1 again to end communication.
-                            post(socket, fragment_sent)
+                            post(socket, fragment_sent, protocol)
 
                     else:
                         log_error("ERROR: While being at the last window, the ACK-REQ was not an All-1. "
@@ -191,10 +193,10 @@ def post(socket, fragment_sent, protocol, retransmit=False):
                         fragment_to_be_resent = Fragment(profile,
                                                          fragment_list[window_size * ack_window_number + j])
                         log_debug("Lost fragment: {}".format(fragment_to_be_resent.to_string()))
-                        post(socket, fragment_to_be_resent, retransmit=True)
+                        post(socket, fragment_to_be_resent, protocol, retransmit=True)
                 if fragment_sent.is_all_1():
                     # Send All-1 again to end communication.
-                    post(socket, fragment_sent)
+                    post(socket, fragment_sent, protocol)
                 elif fragment_sent.is_all_0():
                     # Continue with next window
                     i += 1
@@ -223,7 +225,7 @@ def post(socket, fragment_sent, protocol, retransmit=False):
                 log_error("ERROR: MAX_ACK_REQUESTS reached. Sending Sender-Abort.")
                 header = fragment_sent.HEADER
                 abort = SenderAbort(profile, header)
-                post(socket, abort)
+                post(socket, abort, protocol)
 
         # If the ACK can be not sent (Sigfox only)
         if fragment_sent.is_all_0():
@@ -233,7 +235,7 @@ def post(socket, fragment_sent, protocol, retransmit=False):
 
         # Else, Sigfox communication failed.
         else:
-            log_error("ERROR: HTTP Timeout reached.")
+            log_error("ERROR: Timeout reached.")
             raise NetworkDownError
 
 
@@ -256,7 +258,7 @@ def start_session(socket, message, repetition, protocol, logging=False):
     current_window = 0
     header_bytes = 1 if total_size <= 300 else 2
     log_debug("total_size = {} and header_bytes = {}".format(total_size, header_bytes))
-    profile = SigfoxProtocol("UPLINK", "ACK ON ERROR", header_bytes)
+    profile = SigfoxProfile("UPLINK", "ACK ON ERROR", header_bytes)
     window_size = profile.WINDOW_SIZE
 
     # Send the "CLEAN" message

@@ -4,6 +4,8 @@ from network import Sigfox
 import socket
 import time
 
+from Entities.SCHCTimer import SCHCTimer
+
 
 def zfill(string, width):
 	if len(string) < width:
@@ -19,17 +21,17 @@ sigfox = Sigfox(mode=Sigfox.SIGFOX, rcz=Sigfox.RCZ1)
 
 s = socket.socket(socket.AF_SIGFOX, socket.SOCK_RAW)
 s.setblocking(True)
-s.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, False)
+
 s.settimeout(10)
 
-c = 10
-submerged_time = 0
-n = 1
+timer = SCHCTimer(0)
 
-# Wait for the beacon to be submerged
-time.sleep(submerged_time)
+c = 10
+n = 10
+delay = 20
 
 # Send n messages to the Sigfox network to test connectivity
+s.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, False)
 for i in range(n):
 	string = "{}{}".format(zfill(str(c), 3), zfill(str(i), 3))
 	payload = bytes(string.encode())
@@ -37,6 +39,22 @@ for i in range(n):
 	s.send(payload)
 	print("Sent.")
 	print(payload)
-	time.sleep(30)
+	timer.wait(delay)
+
+s.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, True)
+received = 0
+for i in range(n):
+	string = "{}{}".format(zfill(str(c), 3), zfill(str(i), 3))
+	payload = bytes(string.encode())
+	try:
+		print("Sending...")
+		s.send(payload)
+		print("Sent.")
+		ack = s.recv(64)
+		received += 1
+		print(ack)
+	except OSError as e:
+		print("No DL received.")
+	timer.wait(delay)
 
 print("Done")

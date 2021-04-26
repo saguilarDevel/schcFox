@@ -4,47 +4,30 @@
 # import time
 # import filecmp
 
-import json
-import socket
-
 # Microphyton imports
 import pycom
 import ubinascii
-# Chronometers for testing
-from machine import Timer
-from network import Sigfox
 
-import sender
-from Entities.Fragmenter import Fragmenter
-from Entities.SCHCTimer import SCHCTimer
-from Entities.Sigfox import Sigfox_Entity
-from Error.errors import SCHCReceiverAbortReceived
-from Messages.Fragment import Fragment
-from Messages.ReceiverAbort import ReceiverAbort
-from Messages.SenderAbort import SenderAbort
+from Entities.SCHCSender import SCHCSender
+from config import exp_dict
 from schc_utils import *
-
-timer = SCHCTimer(0)
 
 pycom.heartbeat(True)
 log_info("This is the SENDER script for a Sigfox Uplink transmission experiment")
 input("Press enter to continue....")
 
-exp_dict = {'Packets/77_bytes.txt': 20,
-            'Packets/150_bytes.txt': 10,
-            'Packets/231_bytes.txt': 10,
-            'Packets/512_bytes.txt': 10}
-
 pycom.heartbeat(False)
+
+init_logging("logs.log")
 
 for filename in exp_dict.keys():
     input("Press enter to continue with filename {}...".format(filename))
     for repetition in range(exp_dict[filename]):
-        print("=====REPETITION {}=====".format(repetition))
+        log_info("=====REPETITION {}=====".format(repetition))
         pycom.rgbled(0x007f00)  # green
         # Read the file to be sent.
         pycom.rgbled(0x7f7f00)  # yellow
-        print("Reading file {}".format(filename))
+        log_debug("Reading file {}".format(filename))
 
         with open(filename, "rb") as data:
             f = data.read()
@@ -52,8 +35,22 @@ for filename in exp_dict.keys():
 
         pycom.rgbled(0x007f00)  # green
 
-        sigfox = Sigfox(mode=Sigfox.SIGFOX, rcz=Sigfox.RCZ4)
-        the_socket = socket.socket(socket.AF_SIGFOX, socket.SOCK_RAW)
-        the_socket.setblocking(True)
+        filename_stats = "stats/stats_{}_{}.json".format(
+            filename[filename.find('_') + 1:filename.find('_')], repetition)
 
-        sender.start_session(socket=the_socket, message=payload, repetition=repetition, protocol=sigfox, logging=True)
+        sender = SCHCSender()
+        sender.set_logging(filename_stats)
+        sender.set_session("ACK ON ERROR", payload)
+
+        log_debug("Sending CLEAN message")
+        if repetition == 0:
+            clean_msg = str(ubinascii.hexlify("CLEAN_ALL"))[2:-1]
+        else:
+            clean_msg = str(ubinascii.hexlify("CLEAN"))[2:-1]
+
+        sender.send(ubinascii.unhexlify("{}a{}".format(sender.HEADER_BYTES, clean_msg)))
+
+        # Wait for the cleaning function to end
+        sender.TIMER.wait(30)
+        sender.set_delay(20)
+        sender.start_session()
