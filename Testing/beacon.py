@@ -17,7 +17,7 @@ def zfill(string, width):
 # init Sigfox for RCZ4 (Chile)
 # sigfox = Sigfox(mode=Sigfox.SIGFOX, rcz=Sigfox.RCZ4)
 # init Sigfox for RCZ1 (Europe)
-sigfox = Sigfox(mode=Sigfox.SIGFOX, rcz=Sigfox.RCZ1)
+sigfox = Sigfox(mode=Sigfox.SIGFOX, rcz=Sigfox.RCZ4)
 
 s = socket.socket(socket.AF_SIGFOX, socket.SOCK_RAW)
 s.setblocking(True)
@@ -27,8 +27,8 @@ s.settimeout(10)
 timer = SCHCTimer(0)
 
 c = 10
-n = 10
-delay = 20
+n = 100
+delay = 0
 
 # Send n messages to the Sigfox network to test connectivity
 s.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, False)
@@ -40,10 +40,10 @@ for i in range(n):
 	print("Sent.")
 	print(payload)
 	timer.wait(delay)
-
+input("press enter to continue with ACKs")
 s.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, True)
 received = 0
-for i in range(n):
+for i in range(n//2):
 	string = "{}{}".format(zfill(str(c), 3), zfill(str(i), 3))
 	payload = bytes(string.encode())
 	try:
@@ -57,4 +57,4 @@ for i in range(n):
 		print("No DL received.")
 	timer.wait(delay)
 
-print("Done")
+print("received: {}".format(received))
