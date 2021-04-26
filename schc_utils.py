@@ -1,32 +1,41 @@
 import json
-import logging as log
+
+logfilename = ''
 
 
 def init_logging(logfile):
-    log.basicConfig(filename=logfile,
-                    format='%(asctime)s - %(levelname)s - %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S',
-                    level=log.DEBUG)
+    global logfilename
+    logfilename = logfile
+    with open(logfile, 'w') as f:
+        f.write("====START LOGGING====\n\n")
 
 
 def log_debug(text):
+    global logfilename
     print(text)
-    log.debug(text)
+    with open(logfilename, 'w') as f:
+        f.write("[DEBUG] {}\n".format(text))
 
 
 def log_info(text):
+    global logfilename
     print(text)
-    log.info(text)
+    with open(logfilename, 'w') as f:
+        f.write("[INFO] {}\n".format(text))
 
 
 def log_warning(text):
+    global logfilename
     print(text)
-    log.warning(text)
+    with open(logfilename, 'w') as f:
+        f.write("[WARNING] {}\n".format(text))
 
 
 def log_error(text):
+    global logfilename
     print(text)
-    log.error(text)
+    with open(logfilename, 'w') as f:
+        f.write("[ERROR] {}\n".format(text))
 
 
 def zfill(string, width):
