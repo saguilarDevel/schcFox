@@ -124,7 +124,7 @@ class SCHCSender:
         self.TIMER.wait(self.DELAY)
 
         if logging:
-            self.LOGGER.START_SENDING_TIME += self.DELAY
+            self.LOGGER.LOGGING_TIME += self.DELAY
             current_fragment = {'RULE_ID': fragment_sent.HEADER.RULE_ID,
                                 'W': fragment_sent.HEADER.W,
                                 'FCN': fragment_sent.HEADER.FCN,
@@ -237,7 +237,7 @@ class SCHCSender:
                         if logging:
                             self.LOGGER.FRAGMENTS_INFO_ARRAY.append(current_fragment)
                             self.LOGGER.FINISHED = True
-                        self.FRAGMENT_IDEX += 1
+                        self.FRAGMENT_INDEX += 1
                         return
                     # Otherwise,
                     else:

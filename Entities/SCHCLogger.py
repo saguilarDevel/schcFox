@@ -16,6 +16,7 @@ class SCHCLogger:
     FRAGMENTATION_TIME = None
     START_SENDING_TIME = None
     END_SENDING_TIME = None
+    LOGGING_TIME = None
     FINISHED = False
 
     def __init__(self, filename, json_file):
@@ -23,8 +24,9 @@ class SCHCLogger:
         self.JSON_FILE = json_file
         self.CHRONO = Timer.Chrono()
         self.CHRONO.start()
+        self.LOGGING_TIME = 0
 
-        with open(self.FILENAME, 'w') as f:
+        with open(self.FILENAME, 'a') as f:
             f.write("====START LOGGING====\n\n")
 
     def debug(self, text):
@@ -35,12 +37,12 @@ class SCHCLogger:
         if self.START_SENDING_TIME is not None and self.END_SENDING_TIME is None:
             t_i = self.CHRONO.read()
 
-        with open(self.FILENAME, 'w') as f:
+        with open(self.FILENAME, 'a') as f:
             f.write("[DEBUG] {}\n".format(text))
 
         if self.START_SENDING_TIME is not None and self.END_SENDING_TIME is None:
             t_f = self.CHRONO.read()
-            self.START_SENDING_TIME += t_f - t_i
+            self.LOGGING_TIME += t_f - t_i
 
     def info(self, text):
         print(self, "[INFO] {}".format(text))
@@ -50,12 +52,12 @@ class SCHCLogger:
         if self.START_SENDING_TIME is not None and self.END_SENDING_TIME is None:
             t_i = self.CHRONO.read()
 
-        with open(self.FILENAME, 'w') as f:
+        with open(self.FILENAME, 'a') as f:
             f.write("[INFO] {}\n".format(text))
 
         if self.START_SENDING_TIME is not None and self.END_SENDING_TIME is None:
             t_f = self.CHRONO.read()
-            self.START_SENDING_TIME += t_f - t_i
+            self.LOGGING_TIME += t_f - t_i
 
     def warning(self, text):
         print(self, "[WARNING] {}".format(text))
@@ -65,12 +67,12 @@ class SCHCLogger:
         if self.START_SENDING_TIME is not None and self.END_SENDING_TIME is None:
             t_i = self.CHRONO.read()
 
-        with open(self.FILENAME, 'w') as f:
+        with open(self.FILENAME, 'a') as f:
             f.write("[WARNING] {}\n".format(text))
 
         if self.START_SENDING_TIME is not None and self.END_SENDING_TIME is None:
             t_f = self.CHRONO.read()
-            self.START_SENDING_TIME += t_f - t_i
+            self.LOGGING_TIME += t_f - t_i
 
     def error(self, text):
         print(self, "[ERROR] {}".format(text))
@@ -80,12 +82,12 @@ class SCHCLogger:
         if self.START_SENDING_TIME is not None and self.END_SENDING_TIME is None:
             t_i = self.CHRONO.read()
 
-        with open(self.FILENAME, 'w') as f:
+        with open(self.FILENAME, 'a') as f:
             f.write("[ERROR] {}\n".format(text))
 
         if self.START_SENDING_TIME is not None and self.END_SENDING_TIME is None:
             t_f = self.CHRONO.read()
-            self.START_SENDING_TIME += t_f - t_i
+            self.LOGGING_TIME += t_f - t_i
 
     def save(self):
         self.debug('Stats')
@@ -130,13 +132,13 @@ class SCHCLogger:
 
             total_transmission_results = {'fragments': results_json,
                                           'fragmentation_time': self.FRAGMENTATION_TIME,
-                                          'total_transmission_time': self.END_SENDING_TIME - self.START_SENDING_TIME,
+                                          'total_transmission_time': self.END_SENDING_TIME - self.START_SENDING_TIME - self.LOGGING_TIME,
                                           'total_number_of_fragments': len(self.FRAGMENTS_INFO_ARRAY),
                                           'payload_size': self.TOTAL_SIZE,
                                           'tx_status_ok': self.FINISHED}
 
             self.debug("fragmentation time: {}".format(self.FRAGMENTATION_TIME))
-            self.debug("total sending time: {}".format(self.END_SENDING_TIME - self.START_SENDING_TIME))
+            self.debug("total sending time: {}".format(self.END_SENDING_TIME - self.START_SENDING_TIME - self.LOGGING_TIME))
             self.debug("total number of fragments sent: {}".format(len(self.FRAGMENTS_INFO_ARRAY)))
             self.debug('tx_status_ok: {}'.format(self.FINISHED))
             # print("total_transmission_results:{}".format(total_transmission_results))
@@ -146,7 +148,7 @@ class SCHCLogger:
     # def extract_data(foldername, stats_file, output, spreadsheet):
     #     import pandas as pd
     #     from math import ceil, isnan
-    # 
+    #
     #     pd.set_option('display.max_columns', None)
     #
     #     path = f"results/{foldername}/{stats_file}"
