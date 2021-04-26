@@ -1,42 +1,5 @@
 import json
 
-logfilename = ''
-
-
-def init_logging(logfile):
-    global logfilename
-    logfilename = logfile
-    with open(logfile, 'w') as f:
-        f.write("====START LOGGING====\n\n")
-
-
-def log_debug(text):
-    global logfilename
-    print(text)
-    with open(logfilename, 'w') as f:
-        f.write("[DEBUG] {}\n".format(text))
-
-
-def log_info(text):
-    global logfilename
-    print(text)
-    with open(logfilename, 'w') as f:
-        f.write("[INFO] {}\n".format(text))
-
-
-def log_warning(text):
-    global logfilename
-    print(text)
-    with open(logfilename, 'w') as f:
-        f.write("[WARNING] {}\n".format(text))
-
-
-def log_error(text):
-    global logfilename
-    print(text)
-    with open(logfilename, 'w') as f:
-        f.write("[ERROR] {}\n".format(text))
-
 
 def zfill(string, width):
     if len(string) < width:

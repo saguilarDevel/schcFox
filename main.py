@@ -6,16 +6,15 @@
 
 # Microphyton imports
 import pycom
-import ubinascii
+import binascii
 
 from Entities.SCHCSender import SCHCSender
 from config import exp_dict
-from schc_utils import *
 
 pycom.heartbeat(True)
 
-init_logging("logs.log")
-log_info("This is the SENDER script for a Sigfox Uplink transmission experiment")
+
+print("This is the SENDER script for a Sigfox Uplink transmission experiment")
 input("Press enter to continue....")
 
 pycom.heartbeat(False)
@@ -24,11 +23,10 @@ pycom.heartbeat(False)
 for filename in exp_dict.keys():
     input("Press enter to continue with filename {}...".format(filename))
     for repetition in range(exp_dict[filename]):
-        log_info("=====REPETITION {}=====".format(repetition))
+
         pycom.rgbled(0x007f00)  # green
         # Read the file to be sent.
         pycom.rgbled(0x7f7f00)  # yellow
-        log_debug("Reading file {}".format(filename))
 
         with open(filename, "rb") as data:
             f = data.read()
@@ -40,16 +38,19 @@ for filename in exp_dict.keys():
             filename[filename.find('_') + 1:filename.find('_')], repetition)
 
         sender = SCHCSender()
-        sender.set_logging(filename_stats)
+        sender.set_logging(filename="logs.log", json_file=filename_stats)
         sender.set_session("ACK ON ERROR", payload)
 
-        log_debug("Sending CLEAN message")
-        if repetition == 0:
-            clean_msg = str(ubinascii.hexlify("CLEAN_ALL"))[2:-1]
-        else:
-            clean_msg = str(ubinascii.hexlify("CLEAN"))[2:-1]
+        sender.LOGGER.info("=====REPETITION {}=====".format(repetition))
 
-        sender.send(ubinascii.unhexlify("{}a{}".format(sender.HEADER_BYTES, clean_msg)))
+        if repetition == 0:
+            clean_msg = str(binascii.hexlify("CLEAN_ALL"))[2:-1]
+        else:
+            clean_msg = str(binascii.hexlify("CLEAN"))[2:-1]
+
+        sender.LOGGER.debug("Sending {} message".format(clean_msg))
+
+        sender.send(binascii.unhexlify("{}a{}".format(sender.HEADER_BYTES, clean_msg)))
 
         # Wait for the cleaning function to end
         sender.TIMER.wait(30)

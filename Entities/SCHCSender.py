@@ -10,7 +10,6 @@ from Entities.exceptions import *
 from Messages.ACK import ACK
 from Messages.Fragment import Fragment
 from Messages.SenderAbort import SenderAbort
-from schc_utils import *
 
 
 class SCHCSender:
@@ -37,8 +36,8 @@ class SCHCSender:
         self.TIMER = SCHCTimer(0)
         self.DELAY = 0
 
-    def set_logging(self, filename):
-        self.LOGGER = SCHCLogger(filename)
+    def set_logging(self, filename, json_file):
+        self.LOGGER = SCHCLogger(filename, json_file)
 
     def set_delay(self, delay):
         self.DELAY = delay
@@ -66,7 +65,7 @@ class SCHCSender:
 
         if self.LOGGER is not None:
             self.LOGGER.FRAGMENTATION_TIME = self.LOGGER.CHRONO.read()
-            log_debug("fragmentation time -> {}".format(self.LOGGER.FRAGMENTATION_TIME))
+            self.LOGGER.debug("fragmentation time -> {}".format(self.LOGGER.FRAGMENTATION_TIME))
 
         if len(self.FRAGMENTS) > (2 ** self.PROFILE.M) * self.PROFILE.WINDOW_SIZE:
             raise RuleSelectionError
@@ -88,24 +87,24 @@ class SCHCSender:
             fragment = Fragment(self.PROFILE, self.FRAGMENTS[self.FRAGMENT_INDEX])
 
             if self.LOGGER is not None:
-                log_info("Sending...")
+                self.LOGGER.info("Sending...")
                 self.LOGGER.LAPS.append(self.LOGGER.CHRONO.read())
-                log_debug("laps - > {}".format(self.LOGGER.LAPS))
+                self.LOGGER.debug("laps - > {}".format(self.LOGGER.LAPS))
 
-                log_debug("--------------------------")
-                log_debug("{}th fragment:".format(self.FRAGMENT_INDEX))
-                log_debug("RuleID:{}, DTAG:{}, WINDOW:{}, FCN:{}".format(fragment.HEADER.RULE_ID,
-                                                                         fragment.HEADER.DTAG,
-                                                                         fragment.HEADER.W,
-                                                                         fragment.HEADER.FCN))
-                log_debug("SCHC Fragment: {}".format(fragment.to_string()))
-                log_debug("SCHC Fragment Payload: {}".format(fragment.PAYLOAD))
+                self.LOGGER.debug("--------------------------")
+                self.LOGGER.debug("{}th fragment:".format(self.FRAGMENT_INDEX))
+                self.LOGGER.debug("RuleID:{}, DTAG:{}, WINDOW:{}, FCN:{}".format(fragment.HEADER.RULE_ID,
+                                                                                 fragment.HEADER.DTAG,
+                                                                                 fragment.HEADER.W,
+                                                                                 fragment.HEADER.FCN))
+                self.LOGGER.debug("SCHC Fragment: {}".format(fragment.to_string()))
+                self.LOGGER.debug("SCHC Fragment Payload: {}".format(fragment.PAYLOAD))
 
             current_size += len(self.FRAGMENTS[self.FRAGMENT_INDEX][1])
             percent = round(float(current_size) / float(total_size) * 100, 2)
-            log_debug("{} / {}, {}%".format(current_size,
-                                            total_size,
-                                            percent))
+            self.LOGGER.debug("{} / {}, {}%".format(current_size,
+                                                    total_size,
+                                                    percent))
 
             try:
                 self.schc_send(fragment)
@@ -135,12 +134,12 @@ class SCHCSender:
                                 'receiver_abort_received': False}
 
         if fragment_sent.is_all_0() and not retransmit:
-            log_debug("[POST] This is an All-0. Using All-0 SIGFOX_DL_TIMEOUT.")
+            self.LOGGER.debug("[POST] This is an All-0. Using All-0 SIGFOX_DL_TIMEOUT.")
             self.SOCKET.settimeout(self.PROFILE.SIGFOX_DL_TIMEOUT)
             if logging:
                 current_fragment["timeout"] = self.PROFILE.SIGFOX_DL_TIMEOUT
         elif fragment_sent.is_all_1():
-            log_debug("[POST] This is an All-1. Using RETRANSMISSION_TIMER_VALUE. Increasing ACK attempts.")
+            self.LOGGER.debug("[POST] This is an All-1. Using RETRANSMISSION_TIMER_VALUE. Increasing ACK attempts.")
             self.ATTEMPTS += 1
             self.SOCKET.settimeout(self.PROFILE.RETRANSMISSION_TIMER_VALUE)
             if logging:
@@ -152,8 +151,8 @@ class SCHCSender:
 
         data = fragment_sent.to_bytes()
 
-        log_info("[POST] Posting fragment {} ({})".format(fragment_sent.HEADER.to_string(),
-                                                          fragment_sent.to_hex()))
+        self.LOGGER.info("[POST] Posting fragment {} ({})".format(fragment_sent.HEADER.to_string(),
+                                                                  fragment_sent.to_hex()))
 
         if fragment_sent.expects_ack() and not retransmit:
             self.SOCKET.setsockopt(s.SOL_SIGFOX, s.SO_RX, True)
@@ -178,16 +177,16 @@ class SCHCSender:
                 current_fragment['sending_end'] = self.LOGGER.CHRONO.read()
                 current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
                 current_fragment['rssi'] = self.PROTOCOL.rssi()
-                log_debug("Response received at: {}: ".format(self.LOGGER.CHRONO.read()))
-                log_debug('ack -> {}'.format(ack))
-                log_debug('message RSSI: {}'.format(self.PROTOCOL.rssi()))
+                self.LOGGER.debug("Response received at: {}: ".format(self.LOGGER.CHRONO.read()))
+                self.LOGGER.debug('ack -> {}'.format(ack))
+                self.LOGGER.debug('message RSSI: {}'.format(self.PROTOCOL.rssi()))
 
             if fragment_sent.is_sender_abort():
                 if logging:
-                    log_debug("--- senderAbort:{}".format(fragment_sent.to_string()))
-                    log_debug("--- senderAbort:{}".format(fragment_sent.to_bytes()))
+                    self.LOGGER.debug("--- senderAbort:{}".format(fragment_sent.to_string()))
+                    self.LOGGER.debug("--- senderAbort:{}".format(fragment_sent.to_bytes()))
                     current_fragment['abort'] = True
-                log_error("Sent Sender-Abort. Goodbye")
+                self.LOGGER.error("Sent Sender-Abort. Goodbye")
                 self.LOGGER.FRAGMENTS_INFO_ARRAY.append(current_fragment)
                 raise SenderAbortError
 
@@ -200,14 +199,14 @@ class SCHCSender:
                 if logging:
                     current_fragment['ack'] = ack
                     current_fragment['ack_received'] = True
-                log_info("[ACK] Bytes: {}. Ressetting attempts counter to 0.".format(ack))
+                self.LOGGER.info("[ACK] Bytes: {}. Ressetting attempts counter to 0.".format(ack))
                 self.ATTEMPTS = 0
 
                 # Parse ACK
                 ack_object = ACK.parse_from_bytes(self.PROFILE, ack)
 
                 if ack_object.is_receiver_abort():
-                    log_error("ERROR: Receiver Abort received. Aborting communication.")
+                    self.LOGGER.error("ERROR: Receiver Abort received. Aborting communication.")
 
                     if logging:
                         current_fragment['receiver_abort_message'] = ack
@@ -216,7 +215,7 @@ class SCHCSender:
                     raise ReceiverAbortError
 
                 if not fragment_sent.expects_ack():
-                    log_error("ERROR: ACK received but not requested ({}).".format(ack))
+                    self.LOGGER.error("ERROR: ACK received but not requested ({}).".format(ack))
                     raise UnrequestedACKError
 
                 # Extract data from ACK
@@ -224,17 +223,17 @@ class SCHCSender:
                 ack_window_number = ack_object.HEADER.WINDOW_NUMBER
                 c = ack_object.HEADER.C
                 bitmap = ack_object.BITMAP
-                log_debug("ACK: {}".format(ack))
-                log_debug("ACK window: {}".format(ack_window))
-                log_debug("ACK bitmap: {}".format(bitmap))
-                log_debug("ACK C bit: {}".format(c))
-                log_debug("last window: {}".format(self.LAST_WINDOW))
+                self.LOGGER.debug("ACK: {}".format(ack))
+                self.LOGGER.debug("ACK window: {}".format(ack_window))
+                self.LOGGER.debug("ACK bitmap: {}".format(bitmap))
+                self.LOGGER.debug("ACK C bit: {}".format(c))
+                self.LOGGER.debug("last window: {}".format(self.LAST_WINDOW))
 
                 # If the W field in the SCHC ACK corresponds to the last window of the SCHC Packet:
                 if ack_window_number == self.LAST_WINDOW:
                     # If the C bit is set, the sender MAY exit successfully.
                     if c == '1':
-                        log_info("Last ACK received, fragments reassembled successfully. End of transmission.")
+                        self.LOGGER.info("Last ACK received, fragments reassembled successfully. End of transmission.")
                         if logging:
                             self.LOGGER.FRAGMENTS_INFO_ARRAY.append(current_fragment)
                             self.LOGGER.FINISHED = True
@@ -247,11 +246,11 @@ class SCHCSender:
                         if fragment_sent.is_all_1():
                             # This is the last bitmap, it contains the data up to the All-1 fragment.
                             last_bitmap = bitmap[:len(self.FRAGMENTS) % self.PROFILE.WINDOW_SIZE]
-                            log_debug("last bitmap {}".format(last_bitmap))
+                            self.LOGGER.debug("last bitmap {}".format(last_bitmap))
                             # If the SCHC ACK shows no missing tile at the receiver, abort.
                             # (C = 0 but transmission complete)
                             if last_bitmap[0] == '1' and all(last_bitmap):
-                                log_error("ERROR: SCHC ACK shows no missing tile at the receiver.")
+                                self.LOGGER.error("ERROR: SCHC ACK shows no missing tile at the receiver.")
                                 self.schc_send(SenderAbort(fragment_sent.PROFILE, fragment_sent.HEADER))
 
                             # Otherwise (fragments are lost),
@@ -260,22 +259,23 @@ class SCHCSender:
                                 for j in range(len(last_bitmap)):
                                     # If the j-th bit of the bitmap is 0, then the j-th fragment was lost.
                                     if last_bitmap[j] == '0':
-                                        log_info("The {}th ({} / {}) fragment was lost! "
-                                                 "Sending again...".format(j,
-                                                                           self.PROFILE.WINDOW_SIZE * ack_window_number + j,
-                                                                           len(self.FRAGMENTS)))
+                                        self.LOGGER.info("The {}th ({} / {}) fragment was lost! "
+                                                         "Sending again...".format(j,
+                                                                                   self.PROFILE.WINDOW_SIZE * ack_window_number + j,
+                                                                                   len(self.FRAGMENTS)))
                                         # Try sending again the lost fragment.
                                         fragment_to_be_resent = Fragment(self.PROFILE,
-                                                                         self.FRAGMENTS[self.PROFILE.WINDOW_SIZE * ack_window + j])
-                                        log_debug("Lost fragment: {}".format(fragment_to_be_resent.to_string()))
+                                                                         self.FRAGMENTS[
+                                                                             self.PROFILE.WINDOW_SIZE * ack_window + j])
+                                        self.LOGGER.debug("Lost fragment: {}".format(fragment_to_be_resent.to_string()))
                                         self.schc_send(fragment_to_be_resent, retransmit=True)
 
                                 # Send All-1 again to end communication or check again for lost data.
                                 self.schc_send(fragment_sent)
 
                         else:
-                            log_error("ERROR: While being at the last window, the ACK-REQ was not an All-1. "
-                                      "This is outside of the Sigfox scope.")
+                            self.LOGGER.error("ERROR: While being at the last window, the ACK-REQ was not an All-1. "
+                                              "This is outside of the Sigfox scope.")
                             raise BadProfileError
                 # Otherwise, there are lost fragments in a non-final window.
                 else:
@@ -283,14 +283,15 @@ class SCHCSender:
                     for j in range(len(bitmap)):
                         # If the j-th bit of the bitmap is 0, then the j-th fragment was lost.
                         if bitmap[j] == '0':
-                            log_info("The {}th ({} / {}) fragment was lost! "
-                                     "Sending again...".format(j,
-                                                               self.PROFILE.WINDOW_SIZE * ack_window_number + j,
-                                                               len(self.FRAGMENTS)))
+                            self.LOGGER.info("The {}th ({} / {}) fragment was lost! "
+                                             "Sending again...".format(j,
+                                                                       self.PROFILE.WINDOW_SIZE * ack_window_number + j,
+                                                                       len(self.FRAGMENTS)))
                             # Try sending again the lost fragment.
                             fragment_to_be_resent = Fragment(self.PROFILE,
-                                                             self.FRAGMENTS[self.PROFILE.WINDOW_SIZE * ack_window_number + j])
-                            log_debug("Lost fragment: {}".format(fragment_to_be_resent.to_string()))
+                                                             self.FRAGMENTS[
+                                                                 self.PROFILE.WINDOW_SIZE * ack_window_number + j])
+                            self.LOGGER.debug("Lost fragment: {}".format(fragment_to_be_resent.to_string()))
                             self.schc_send(fragment_to_be_resent, retransmit=True)
                     if fragment_sent.is_all_1():
                         # Send All-1 again to end communication.
@@ -307,30 +308,30 @@ class SCHCSender:
                 current_fragment['rssi'] = self.PROTOCOL.rssi()
                 current_fragment['ack'] = ""
                 current_fragment['ack_received'] = False
-                log_info("Error at: {}: ".format(self.LOGGER.CHRONO.read()))
-                log_info('Error number {}, {}'.format(e.args[0], e))
+                self.LOGGER.info("Error at: {}: ".format(self.LOGGER.CHRONO.read()))
+                self.LOGGER.info('Error number {}, {}'.format(e.args[0], e))
 
             # If an ACK was expected
             if fragment_sent.is_all_1():
                 # If the attempts counter is strictly less than MAX_ACK_REQUESTS, try again
                 if logging:
-                    log_debug("attempts:{}".format(self.ATTEMPTS))
+                    self.LOGGER.debug("attempts:{}".format(self.ATTEMPTS))
                 if self.ATTEMPTS < self.PROFILE.MAX_ACK_REQUESTS:
-                    log_info("SCHC Timeout reached while waiting for an ACK. Sending the ACK Request again...")
+                    self.LOGGER.info("SCHC Timeout reached while waiting for an ACK. Sending the ACK Request again...")
                     self.schc_send(fragment_sent, retransmit=False)
                 # Else, exit with an error.
                 else:
-                    log_error("ERROR: MAX_ACK_REQUESTS reached. Sending Sender-Abort.")
+                    self.LOGGER.error("ERROR: MAX_ACK_REQUESTS reached. Sending Sender-Abort.")
                     abort = SenderAbort(self.PROFILE, fragment_sent.HEADER)
                     self.schc_send(abort)
 
             # If the ACK can be not sent (Sigfox only)
             if fragment_sent.is_all_0():
-                log_info("All-0 timeout reached. Proceeding to next window.")
+                self.LOGGER.info("All-0 timeout reached. Proceeding to next window.")
                 self.FRAGMENT_INDEX += 1
                 self.CURRENT_WINDOW += 1
 
             # Else, Sigfox communication failed.
             else:
-                log_error("ERROR: Timeout reached.")
+                self.LOGGER.error("ERROR: Timeout reached.")
                 raise NetworkDownError
