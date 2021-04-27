@@ -187,12 +187,13 @@ class SCHCSender:
                     self.LOGGER.debug("--- senderAbort:{}".format(fragment_sent.to_string()))
                     self.LOGGER.debug("--- senderAbort:{}".format(fragment_sent.to_bytes()))
                     current_fragment['abort'] = True
-                self.LOGGER.error("Sent Sender-Abort. Goodbye")
-                self.LOGGER.FRAGMENTS_INFO_ARRAY.append(current_fragment)
+                    self.LOGGER.error("Sent Sender-Abort. Goodbye")
+                    self.LOGGER.FRAGMENTS_INFO_ARRAY.append(current_fragment)
                 raise SenderAbortError
 
             if not fragment_sent.expects_ack() and not retransmit:
-                self.LOGGER.FRAGMENTS_INFO_ARRAY.append(current_fragment)
+                if logging:
+                    self.LOGGER.FRAGMENTS_INFO_ARRAY.append(current_fragment)
                 self.FRAGMENT_INDEX += 1
                 return
 
@@ -200,23 +201,23 @@ class SCHCSender:
                 if logging:
                     current_fragment['ack'] = ack
                     current_fragment['ack_received'] = True
-                self.LOGGER.info("[ACK] Bytes: {}. Ressetting attempts counter to 0.".format(ack))
+                    self.LOGGER.info("[ACK] Bytes: {}. Ressetting attempts counter to 0.".format(ack))
                 self.ATTEMPTS = 0
 
                 # Parse ACK
                 ack_object = ACK.parse_from_bytes(self.PROFILE, ack)
 
                 if ack_object.is_receiver_abort():
-                    self.LOGGER.error("ERROR: Receiver Abort received. Aborting communication.")
-
                     if logging:
                         current_fragment['receiver_abort_message'] = ack
                         current_fragment['receiver_abort_received'] = True
-
+                    self.LOGGER.error("ERROR: Receiver Abort received. Aborting communication.")
+                    self.LOGGER.FRAGMENTS_INFO_ARRAY.append(current_fragment)
                     raise ReceiverAbortError
 
                 if not fragment_sent.expects_ack():
                     self.LOGGER.error("ERROR: ACK received but not requested ({}).".format(ack))
+                    self.LOGGER.FRAGMENTS_INFO_ARRAY.append(current_fragment)
                     raise UnrequestedACKError
 
                 # Extract data from ACK
