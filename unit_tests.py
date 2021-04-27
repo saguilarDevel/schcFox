@@ -123,6 +123,8 @@ class TestSenderAbort(unittest.TestCase):
         payload = byte_data[profile.HEADER_LENGTH:]
         fragment = Fragment(profile, [header, payload])
         abort = SenderAbort(fragment.PROFILE, fragment.HEADER)
+        self.assertEqual(len(abort.HEADER.to_string()), profile.HEADER_LENGTH)
+        self.assertEqual(len(abort.PAYLOAD), profile.UPLINK_MTU - profile.HEADER_LENGTH)
         self.assertEqual(type(abort.PROFILE), SigfoxProfile)
         self.assertEqual(abort.HEADER.RULE_ID, fragment.HEADER.RULE_ID)
         self.assertEqual(abort.HEADER.DTAG, fragment.HEADER.DTAG)
@@ -145,6 +147,7 @@ class TestReceiverAbort(unittest.TestCase):
         fragment = Fragment(profile, data)
         abort = ReceiverAbort(profile, fragment.HEADER)
 
+        self.assertEqual(len(abort.to_string()), profile.DOWNLINK_MTU)
         self.assertEqual(type(abort.PROFILE), SigfoxProfile)
         self.assertEqual(abort.HEADER.RULE_ID, fragment.HEADER.RULE_ID)
         self.assertEqual(abort.HEADER.DTAG, fragment.HEADER.DTAG)

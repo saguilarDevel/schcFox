@@ -12,7 +12,7 @@ class SenderAbort(Fragment):
         new_header = rule_id + dtag + w + fcn
         payload = ''
 
-        while len(new_header + payload) < profile.UPLINK_MTU:
+        while len(payload) < profile.UPLINK_MTU - profile.HEADER_LENGTH:
             payload += '0'
 
         print(new_header)
