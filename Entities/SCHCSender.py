@@ -165,7 +165,7 @@ class SCHCSender:
 
             self.SOCKET.send(data)
 
-            if fragment_sent.expects_ack():
+            if fragment_sent.expects_ack() and not retransmit:
                 if logging:
                     current_fragment['downlink_enable'] = True
                     current_fragment['ack_received'] = False
