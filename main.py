@@ -9,7 +9,7 @@ import pycom
 import binascii
 
 from Entities.SCHCSender import SCHCSender
-from config import exp_dict
+from config import exp_pairs
 
 pycom.heartbeat(True)
 
@@ -20,8 +20,9 @@ input("Press enter to continue....")
 pycom.heartbeat(False)
 
 
-for filename in exp_dict.keys():
-    for repetition in range(exp_dict[filename]):
+for pair in exp_pairs:
+    filename = pair[0]
+    for repetition in range(pair[1]):
 
         pycom.rgbled(0x007f00)  # green
         # Read the file to be sent.
