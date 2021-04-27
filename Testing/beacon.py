@@ -31,20 +31,20 @@ n = 100
 delay = 0
 
 # Send n messages to the Sigfox network to test connectivity
-s.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, False)
-for i in range(n):
-	string = "{}{}".format(zfill(str(c), 3), zfill(str(i), 3))
-	payload = bytes(string.encode())
-	print("Sending...")
-	s.send(payload)
-	print("Sent.")
-	print(payload)
-	timer.wait(delay)
-input("press enter to continue with ACKs")
+# s.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, False)
+# for i in range(n):
+# 	string = "{}{}".format(zfill(str(c), 3), zfill(str(i), 3))
+# 	payload = bytes(string.encode())
+# 	print("Sending...")
+# 	s.send(payload)
+# 	print("Sent.")
+# 	print(payload)
+# 	timer.wait(delay)
+
 s.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, True)
 received = 0
 for i in range(n//2):
-	string = "{}{}".format(zfill(str(c), 3), zfill(str(i), 3))
+	string = "A{}{}".format(zfill(str(c), 3), zfill(str(i), 3))
 	payload = bytes(string.encode())
 	try:
 		print("Sending...")

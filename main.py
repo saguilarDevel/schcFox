@@ -21,7 +21,6 @@ pycom.heartbeat(False)
 
 
 for filename in exp_dict.keys():
-    input("Press enter to continue with filename {}...".format(filename))
     for repetition in range(exp_dict[filename]):
 
         pycom.rgbled(0x007f00)  # green
@@ -41,7 +40,7 @@ for filename in exp_dict.keys():
         sender.set_logging(filename="logs.log", json_file=filename_stats)
         sender.set_session("ACK ON ERROR", payload)
 
-        sender.LOGGER.info("=====REPETITION {}=====".format(repetition))
+        sender.LOGGER.info("=====REPETITION {} ({})=====".format(repetition, filename))
 
         if repetition == 0:
             clean_msg = str(binascii.hexlify("CLEAN_ALL"))[2:-1]
@@ -56,3 +55,6 @@ for filename in exp_dict.keys():
         sender.TIMER.wait(30)
         sender.set_delay(20)
         sender.start_session()
+
+
+input("Round of experiments complete. Press Enter to exit.")

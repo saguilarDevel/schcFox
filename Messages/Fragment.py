@@ -31,7 +31,7 @@ class Fragment:
         return self.HEADER.to_bytes() + self.PAYLOAD
 
     def to_string(self):
-        return self.to_bytes().decode()
+        return str(self.to_bytes())
 
     def to_hex(self):
         return binascii.hexlify(self.to_bytes())
