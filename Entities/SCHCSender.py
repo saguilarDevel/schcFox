@@ -177,10 +177,11 @@ class SCHCSender:
             if logging:
                 current_fragment['sending_end'] = self.LOGGER.CHRONO.read()
                 current_fragment['send_time'] = current_fragment['sending_end'] - current_fragment['sending_start']
-                current_fragment['rssi'] = self.PROTOCOL.rssi()
-                self.LOGGER.debug("Response received at: {}: ".format(self.LOGGER.CHRONO.read()))
-                self.LOGGER.debug('ack -> {}'.format(ack))
-                self.LOGGER.debug('message RSSI: {}'.format(self.PROTOCOL.rssi()))
+                if ack is not None:
+                    current_fragment['rssi'] = self.PROTOCOL.rssi()
+                    self.LOGGER.debug("Response received at: {}: ".format(self.LOGGER.CHRONO.read()))
+                    self.LOGGER.debug('ack -> {}'.format(ack))
+                    self.LOGGER.debug('message RSSI: {}'.format(self.PROTOCOL.rssi()))
 
             if fragment_sent.is_sender_abort():
                 if logging:
