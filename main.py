@@ -178,7 +178,7 @@ CURRENT_STATE = STATE_INIT
 
 pycom.heartbeat(True)
 print("This is the SENDER script for a Sigfox Uplink transmission example")
-input("Press enter to continue....")
+# input("Press enter to continue....")
 # if len(sys.argv) < 4:
 # 	print("python sender.py [IP] [PORT] [FILENAME] [-hv]")
 # 	sys.exit()
@@ -201,7 +201,7 @@ verbose = True
 # ip = sys.argv[1]
 # port = int(sys.argv[2])
 # filename = sys.argv[3]
-filename = 'Packets/165_bytes.txt'
+filename = 'Packets/77_bytes.txt'
 # filename = 'example4.txt' # 88 bytes 
 filename_stats = "LoPy_stats_file_v7.1.json"
 # address = (ip, port)
@@ -792,7 +792,7 @@ print('Stats')
 # print(fragments_info_array)
 
 
-print("Writing to file {}".format(filename_stats))
+print("Writig to file {}".format(filename_stats))
 f = open(filename_stats, "w")
 write_string = ''
 results_json = {}

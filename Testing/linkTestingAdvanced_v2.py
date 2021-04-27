@@ -111,7 +111,7 @@ for i in range(n):
 	if i % send_ack_number == 0:
 		# wait for a downlink after sending the uplink packet
 		s.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, True)
-		# s.setsockopt(socket.SOL_SIGFOX, socket.SO_TX_REPEAT, 0)
+		s.setsockopt(socket.SOL_SIGFOX, socket.SO_TX_REPEAT, 0)
 		try:
 			current_fragment['downlink_enable'] = True
 			pycom.rgbled(0x7700CC) # purple
@@ -144,7 +144,8 @@ for i in range(n):
 	else:
 		# make the socket uplink only
 		s.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, False)
-		# s.setsockopt(socket.SOL_SIGFOX, socket.SO_TX_REPEAT, 0)
+		s.setsockopt(socket.SOL_SIGFOX, socket.SO_TX_REPEAT, 0)
+		
 		try:
 			current_fragment['downlink_enable'] = False
 			pycom.rgbled(0x00ffff) # cyan
@@ -173,7 +174,7 @@ for i in range(n):
 
 s.close()
 print("Done")
-filename_stats = "LoPy_stats_file_v5.17.json"
+filename_stats = "LoPy_stats_file_v5.18.json"
 print("Writing to file {}".format(filename_stats))
 f = open(filename_stats, "w")
 write_string = ''

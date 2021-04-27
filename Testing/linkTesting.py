@@ -27,6 +27,7 @@ s = socket.socket(socket.AF_SIGFOX, socket.SOCK_RAW)
 s.setblocking(True)
 # set False for only uplink, true for BIDIR
 s.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, True)
+s.setsockopt(socket.SOL_SIGFOX, socket.SO_TX_REPEAT, 0)
 timeout = 45
 s.settimeout(timeout)
 
