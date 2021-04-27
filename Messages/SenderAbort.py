@@ -15,4 +15,6 @@ class SenderAbort(Fragment):
         while len(new_header + payload) < profile.UPLINK_MTU:
             payload += '0'
 
+        print(new_header)
+
         super().__init__(profile, [bitstring_to_bytes(new_header), payload.encode()])
