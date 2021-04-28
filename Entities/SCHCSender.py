@@ -19,7 +19,7 @@ class SCHCSender:
     MESSAGE = ''
     FRAGMENTS = []
     ATTEMPTS = None
-    FRAGMENT_IDEX = None
+    FRAGMENT_INDEX = None
     CURRENT_WINDOW = None
     LAST_WINDOW = None
     TIMER = None
@@ -32,8 +32,14 @@ class SCHCSender:
         self.PROTOCOL = Sigfox(mode=Sigfox.SIGFOX, rcz=Sigfox.RCZ4)
         self.SOCKET = s.socket(s.AF_SIGFOX, s.SOCK_RAW)
         self.SOCKET.setblocking(True)
+        self.MESSAGE = ''
+        self.FRAGMENTS = []
+        self.ATTEMPTS = None
         self.FRAGMENT_INDEX = 0
+        self.CURRENT_WINDOW = None
+        self.LAST_WINDOW = None
         self.TIMER = SCHCTimer(0)
+        self.HEADER_BYTES = None
         self.DELAY = 0
 
     def set_logging(self, filename, json_file):

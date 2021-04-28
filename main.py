@@ -13,12 +13,10 @@ from config import exp_pairs
 
 pycom.heartbeat(True)
 
-
 print("This is the SENDER script for a Sigfox Uplink transmission experiment")
 input("Press enter to continue....")
 
 pycom.heartbeat(False)
-
 
 for pair in exp_pairs:
     filename = pair[0]
@@ -56,6 +54,5 @@ for pair in exp_pairs:
         sender.TIMER.wait(30)
         sender.set_delay(20)
         sender.start_session()
-
 
 input("Round of experiments complete. Press Enter to exit.")

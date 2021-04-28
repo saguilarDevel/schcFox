@@ -22,9 +22,17 @@ class SCHCLogger:
     def __init__(self, filename, json_file):
         self.FILENAME = filename
         self.JSON_FILE = json_file
+        self.TOTAL_SIZE = 0
         self.CHRONO = Timer.Chrono()
         self.CHRONO.start()
         self.LOGGING_TIME = 0
+        self.LAPS = []
+        self.FRAGMENTS_INFO_ARRAY = []
+        self.FRAGMENTATION_TIME = 0
+        self.START_SENDING_TIME = 0
+        self.END_SENDING_TIME = 0
+        self.LOGGING_TIME = 0
+        self.FINISHED = False
 
         with open(self.FILENAME, 'a') as f:
             f.write("====START LOGGING====\n\n")
