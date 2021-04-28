@@ -13,6 +13,8 @@ header = byte_data[:profile.HEADER_LENGTH]
 payload = byte_data[profile.HEADER_LENGTH:]
 fragment = Fragment(profile, [header, payload])
 abort = SenderAbort(fragment.PROFILE, fragment.HEADER)
+print(len(abort.HEADER.to_string()) == profile.HEADER_LENGTH)
+print(len(abort.PAYLOAD) == profile.UPLINK_MTU - profile.HEADER_LENGTH)
 print(abort.PROFILE)
 print(type(abort.PROFILE) == SigfoxProfile)
 print(abort.HEADER.RULE_ID == fragment.HEADER.RULE_ID)
