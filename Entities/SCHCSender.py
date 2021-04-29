@@ -135,9 +135,18 @@ class SCHCSender:
                                 'W': fragment_sent.HEADER.W,
                                 'FCN': fragment_sent.HEADER.FCN,
                                 'data': fragment_sent.to_bytes(),
+                                'fragment_size': len(fragment_sent.to_bytes()),
                                 'abort': False,
-                                'receiver_abort_message': "",
-                                'receiver_abort_received': False}
+                                'sending_start': 0,
+                                'sending_end': 0,
+                                'send_time': 0,
+                                'downlink_enable': False,
+                                'timeout': 0,
+                                'ack_received': False,
+                                'ack': "",
+                                'rssi': 0,
+                                'receiver_abort_received': False,
+                                'receiver_abort_message': ""}
 
         if fragment_sent.is_all_0() and not retransmit:
             self.LOGGER.debug("[POST] This is an All-0. Using All-0 SIGFOX_DL_TIMEOUT.")
@@ -153,7 +162,7 @@ class SCHCSender:
         else:
             self.SOCKET.settimeout(None)
             if logging:
-                current_fragment["timeout"] = None
+                current_fragment["timeout"] = 0
 
         data = fragment_sent.to_bytes()
 
@@ -176,7 +185,6 @@ class SCHCSender:
             if fragment_sent.expects_ack() and not retransmit:
                 if logging:
                     current_fragment['ack_received'] = False
-                    current_fragment['fragment_size'] = len(data)
 
                 ack = self.SOCKET.recv(self.PROFILE.DOWNLINK_MTU // 8)
 
