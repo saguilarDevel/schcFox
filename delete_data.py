@@ -1,6 +1,5 @@
 import os
 
-os.remove("logs.log")
 
 for file in os.listdir("stats"):
     if file.startswith("stats"):
