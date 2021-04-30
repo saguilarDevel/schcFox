@@ -119,13 +119,15 @@ class TestSenderAbort(unittest.TestCase):
 
     def test_all_1(self):
         profile = SigfoxProfile("UPLINK", "ACK ON ERROR", 1)
-        byte_data = b'073132333435363738393132'
-        header = byte_data[:profile.HEADER_LENGTH]
-        payload = byte_data[profile.HEADER_LENGTH:]
+        hex_data = '073132333435363738393132'
+        header = bytes.fromhex(hex_data[:2])
+        payload = bytearray.fromhex(hex_data[2:])
         fragment = Fragment(profile, [header, payload])
         abort = SenderAbort(fragment.PROFILE, fragment.HEADER)
+
         self.assertEqual(len(abort.HEADER.to_string()), profile.HEADER_LENGTH)
-        self.assertEqual(len(abort.PAYLOAD), profile.UPLINK_MTU - profile.HEADER_LENGTH)
+        self.assertLessEqual(len(fragment.PAYLOAD), len(abort.PAYLOAD))
+        self.assertEqual(len(abort.PAYLOAD), (profile.UPLINK_MTU - profile.HEADER_LENGTH) / 8)
         self.assertEqual(type(abort.PROFILE), SigfoxProfile)
         self.assertEqual(abort.HEADER.RULE_ID, fragment.HEADER.RULE_ID)
         self.assertEqual(abort.HEADER.DTAG, fragment.HEADER.DTAG)
