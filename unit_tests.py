@@ -1,5 +1,6 @@
 import unittest
 
+from Entities.Fragmenter import Fragmenter
 from Entities.Sigfox import SigfoxProfile
 from Messages.ACK import ACK
 from Messages.ACKHeader import ACKHeader
@@ -185,6 +186,31 @@ class TestReceiverAbort(unittest.TestCase):
         self.assertEqual(ack.HEADER.C, "1")
         self.assertTrue(ack.is_receiver_abort())
 
+
+class TestFragmenter(unittest.TestCase):
+    def test_two_byte(self):
+        message = "123456789121234567891212345678912123456789121234567891212345" \
+                  "678912123456789123456789123456789121234567891212345678912123" \
+                  "456789123456789123456789121234456789121234567891212345678912" \
+                  "123456789121234567891212345678912345634567891234567341234567" \
+                  "891212345678912123456789121234567891212345678912123456789121" \
+                  "234567891234567891234567891212345678912123456789121234567891" \
+                  "234567891234567891212344567891212345678912123456789121234567" \
+                  "891212345678912123456789123456345678912345673491212345678912" \
+                  "34567891234567891212345678912123 "
+
+        header_bytes = 1 if len(message) <= 300 else 2
+        profile = SigfoxProfile("UPLINK", "ACK ON ERROR", header_bytes)
+        fragmenter = Fragmenter(profile, message)
+        fragments = fragmenter.fragment()
+        first_byte = fragments[0][0][0]
+        equal = True
+        for fragment in fragments:
+            if fragment[0][0] != first_byte:
+                equal = False
+                break
+
+        self.assertTrue(equal)
 
 if __name__ == '__main__':
     unittest.main()
