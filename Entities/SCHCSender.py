@@ -246,13 +246,15 @@ class SCHCSender:
                 self.LOGGER.debug("ACK C bit: {}".format(c))
                 self.LOGGER.debug("last window: {}".format(self.LAST_WINDOW))
 
+                # Save ACKREQ data
+                self.LOGGER.FRAGMENTS_INFO_ARRAY.append(current_fragment)
+
                 # If the W field in the SCHC ACK corresponds to the last window of the SCHC Packet:
                 if ack_window_number == self.LAST_WINDOW:
                     # If the C bit is set, the sender MAY exit successfully.
                     if c == '1':
                         self.LOGGER.info("Last ACK received, fragments reassembled successfully. End of transmission.")
                         if logging:
-                            self.LOGGER.FRAGMENTS_INFO_ARRAY.append(current_fragment)
                             self.LOGGER.FINISHED = True
                         self.FRAGMENT_INDEX += 1
                         return
@@ -298,6 +300,7 @@ class SCHCSender:
                             raise BadProfileError
                 # Otherwise, there are lost fragments in a non-final window.
                 else:
+
                     # Check for lost fragments.
                     for j in range(len(bitmap)):
                         # If the j-th bit of the bitmap is 0, then the j-th fragment was lost.
@@ -312,6 +315,7 @@ class SCHCSender:
                                                                  self.PROFILE.WINDOW_SIZE * ack_window_number + j])
                             self.LOGGER.debug("Lost fragment: {}".format(fragment_to_be_resent.to_string()))
                             self.schc_send(fragment_to_be_resent, retransmit=True)
+
                     if fragment_sent.is_all_1():
                         # Send All-1 again to end communication.
                         self.schc_send(fragment_sent)
@@ -327,8 +331,11 @@ class SCHCSender:
                 current_fragment['rssi'] = self.PROTOCOL.rssi()
                 current_fragment['ack'] = ""
                 current_fragment['ack_received'] = False
-                self.LOGGER.info("Error at: {}: ".format(self.LOGGER.CHRONO.read()))
-                self.LOGGER.info('Error number {}, {}'.format(e.args[0], e))
+                self.LOGGER.info("OSError at: {}: ".format(self.LOGGER.CHRONO.read()))
+                self.LOGGER.info('OSError number {}, {}'.format(e.args[0], e))
+
+            # Save ACKREQ data
+            self.LOGGER.FRAGMENTS_INFO_ARRAY.append(current_fragment)
 
             # If an ACK was expected
             if fragment_sent.is_all_1():
