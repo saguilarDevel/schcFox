@@ -87,6 +87,18 @@ class TestAck(unittest.TestCase):
         self.assertEqual(ack.BITMAP, "1100001")
         self.assertTrue(is_monochar(ack.PADDING) and ack.PADDING[0] == '0')
 
+    def test_from_bytes(self):
+        profile = SigfoxProfile("UPLINK", "ACK ON ERROR", 2)
+        b = b'\xf0/\xbf\xff\x00 \x00\x00'
+        ack = ACK.parse_from_bytes(profile, b)
+        self.assertEqual(ack.to_string(), "1111000000101111101111111111111100000000001000000000000000000000")
+        self.assertEqual(ack.HEADER.RULE_ID, "1111000")
+        self.assertEqual(ack.HEADER.DTAG, "0")
+        self.assertEqual(ack.HEADER.W, "001")
+        self.assertEqual(ack.HEADER.C, "0")
+        self.assertEqual(ack.BITMAP, "1111101111111111111100000000001")
+        self.assertTrue(is_monochar(ack.PADDING) and ack.PADDING[0] == '0')
+
 
 class TestSenderAbort(unittest.TestCase):
     def test_init(self):
