@@ -1,3 +1,4 @@
+import binascii
 import unittest
 
 from Entities.Fragmenter import Fragmenter
@@ -177,6 +178,19 @@ class TestReceiverAbort(unittest.TestCase):
                            padding=ack[ack_index_padding:])
 
         self.assertTrue(received_ack.is_receiver_abort())
+
+    def test_receive_2byte(self):
+        profile = SigfoxProfile("UPLINK", "ACK ON ERROR", 2)
+        frag_hex = 'f03439313231323334353637'
+        header = bytes.fromhex(frag_hex[:4])
+        payload = bytearray.fromhex(frag_hex[4:])
+        fragment = Fragment(profile, [header, payload])
+        abort = ReceiverAbort(profile, fragment.HEADER)
+        self.assertTrue(abort.is_receiver_abort())
+        ack_hex = 'f03fff0000000000'
+        ack_object = ACK.parse_from_hex(profile, ack_hex)
+        ack_object.HEADER.to_string()
+        self.assertTrue(abort.is_receiver_abort())
 
     def test_from_hex(self):
         ack = ACK.parse_from_hex(SigfoxProfile("UPLINK", "ACK ON ERROR", 1), "07ff800000000000")

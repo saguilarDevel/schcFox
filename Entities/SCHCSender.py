@@ -220,7 +220,7 @@ class SCHCSender:
                 self.ATTEMPTS = 0
 
                 # Parse ACK
-                ack_object = ACK.parse_from_bytes(self.PROFILE, ack)
+                ack_object = ACK.parse_from_hex(self.PROFILE, ack)
 
                 if ack_object.is_receiver_abort():
                     if logging:
