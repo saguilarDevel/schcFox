@@ -267,7 +267,7 @@ class SCHCSender:
                             # The leftmost bit of this bitmap should always be 1, as the All-1 gets to the network
                             # to request the ACK.
                             last_bitmap = bitmap[-1][:(len(self.FRAGMENTS) - 1) % self.PROFILE.WINDOW_SIZE]
-                            self.LOGGER.debug("last bitmap {}".format(last_bitmap))
+                            self.LOGGER.debug("last bitmap: {}".format(last_bitmap))
                             # If the SCHC ACK shows no missing tile at the receiver, abort.
                             # (C = 0 but transmission complete)
                             if last_bitmap == '' or (last_bitmap[0] == '1' and all(last_bitmap)):

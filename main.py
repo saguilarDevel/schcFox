@@ -20,6 +20,8 @@ pycom.heartbeat(False)
 
 for pair in exp_pairs:
     filename = pair[0]
+    input("Press enter to continue with {}".format(filename))
+
     for repetition in range(pair[1]):
 
         pycom.rgbled(0x007f00)  # green
@@ -43,8 +45,11 @@ for pair in exp_pairs:
 
         if repetition == 0:
             clean_msg = str(binascii.hexlify("CLEAN_ALL"))[2:-1]
-        else:
-            clean_msg = str(binascii.hexlify("CLEAN"))[2:-1]
+            sender.LOGGER.debug("Sending {} message".format(binascii.unhexlify(clean_msg)))
+            sender.send(binascii.unhexlify("{}a{}".format(sender.HEADER_BYTES, clean_msg)))
+            sender.TIMER.wait(30)
+
+        clean_msg = str(binascii.hexlify("CLEAN"))[2:-1]
 
         sender.LOGGER.debug("Sending {} message".format(binascii.unhexlify(clean_msg)))
 

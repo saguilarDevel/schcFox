@@ -43,7 +43,7 @@ delay = 0
 
 s.setsockopt(socket.SOL_SIGFOX, socket.SO_RX, True)
 received = 0
-for i in range(n//2):
+for i in range(n):
 	string = "A{}{}".format(zfill(str(c), 3), zfill(str(i), 3))
 	payload = bytes(string.encode())
 	try:
