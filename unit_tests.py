@@ -99,6 +99,38 @@ class TestAck(unittest.TestCase):
         self.assertEqual(ack.BITMAP, "1111101111111111111100000000001")
         self.assertTrue(is_monochar(ack.PADDING) and ack.PADDING[0] == '0')
 
+    def test_last_bitmap(self):
+        profile = SigfoxProfile("UPLINK", "ACK ON ERROR", 1)
+        message = '12345678912123456789121234567891212345678912123456789121234567891212345678912'
+        fragments = Fragmenter(profile, message).fragment()
+        bitmap = '1001111'
+        last_bitmap = bitmap[:(len(fragments) - 1) % profile.WINDOW_SIZE]
+        self.assertEqual(last_bitmap, bitmap[:-1])
+
+        message = '123456789121234567891212345678912123456789121234567891212345678912123456789123' \
+                  '456789123456789121234567891212345678912123456789123456789123456789121234'
+        fragments = Fragmenter(profile, message).fragment()
+        bitmap = '1001111'
+        last_bitmap = bitmap[:(len(fragments) - 1) % profile.WINDOW_SIZE]
+        self.assertEqual(last_bitmap, bitmap[:-1])
+
+        message = '123456789121234567891212345678912123456789121234567891212345678912123456789123456789123456'
+        fragments = Fragmenter(profile, message).fragment()
+        bitmap = '1000001'
+        last_bitmap = bitmap[:(len(fragments) - 1) % profile.WINDOW_SIZE]
+        self.assertEqual(last_bitmap, bitmap[:1])
+
+        profile = SigfoxProfile("UPLINK", "ACK ON ERROR", 1)
+        for list_length in range(1, profile.WINDOW_SIZE):
+            bitmap = '1111111'
+            last_bitmap = bitmap[:(list_length - 1) % profile.WINDOW_SIZE]
+            self.assertEqual(len(last_bitmap), (list_length - 1) % profile.WINDOW_SIZE)
+
+        profile = SigfoxProfile("UPLINK", "ACK ON ERROR", 2)
+        for list_length in range(1, profile.WINDOW_SIZE):
+            bitmap = '1' * profile.BITMAP_SIZE
+            last_bitmap = bitmap[:(list_length - 1) % profile.WINDOW_SIZE]
+            self.assertEqual(len(last_bitmap), (list_length - 1) % profile.WINDOW_SIZE)
 
 class TestSenderAbort(unittest.TestCase):
     def test_init(self):

@@ -266,8 +266,13 @@ class SCHCSender:
                             # This is the last bitmap, it contains the data before the All-1 fragment.
                             # The leftmost bit of this bitmap should always be 1, as the All-1 gets to the network
                             # to request the ACK.
+<<<<<<< HEAD
                             last_bitmap = bitmap[-1][:(len(self.FRAGMENTS) - 1) % self.PROFILE.WINDOW_SIZE]
                             self.LOGGER.debug("last bitmap: {}".format(last_bitmap))
+=======
+                            last_bitmap = bitmap[:(len(self.FRAGMENTS) - 1) % self.PROFILE.WINDOW_SIZE]
+                            self.LOGGER.debug("last bitmap {}".format(last_bitmap))
+>>>>>>> 9abe81c495d40446035e039fbcd8cbb123644933
                             # If the SCHC ACK shows no missing tile at the receiver, abort.
                             # (C = 0 but transmission complete)
                             if last_bitmap == '' or (last_bitmap[0] == '1' and all(last_bitmap)):
