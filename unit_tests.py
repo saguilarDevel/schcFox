@@ -73,6 +73,17 @@ class TestFragment(unittest.TestCase):
 
         self.assertTrue(fragment.is_all_1())
 
+    def test_to_string(self):
+        profile = SigfoxProfile("UPLINK", "ACK ON ERROR", 1)
+        rule_id = "0" * profile.RULE_ID_SIZE
+        dtag = "0" * profile.T
+        w = "0" * profile.M
+        fcn = "0" * profile.N
+        header = bitstring_to_bytes(rule_id + dtag + w + fcn)
+        payload = bytearray.fromhex("3131313231333134313531")
+        fragment = Fragment(profile, [header, payload])
+        print(fragment.to_string())
+
 
 class TestAck(unittest.TestCase):
     def test_from_hex(self):

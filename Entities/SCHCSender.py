@@ -287,7 +287,7 @@ class SCHCSender:
                                         # Try sending again the lost fragment.
                                         fragment_to_be_resent = Fragment(self.PROFILE,
                                                                          self.FRAGMENTS[
-                                                                             self.PROFILE.WINDOW_SIZE * ack_window + j])
+                                                                             self.PROFILE.WINDOW_SIZE * ack_window_number + j])
                                         self.LOGGER.debug("Lost fragment: {}".format(fragment_to_be_resent.to_string()))
                                         self.schc_send(fragment_to_be_resent, retransmit=True)
 
