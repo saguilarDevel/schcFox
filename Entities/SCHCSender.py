@@ -10,6 +10,7 @@ from Entities.exceptions import *
 from Messages.ACK import ACK
 from Messages.Fragment import Fragment
 from Messages.SenderAbort import SenderAbort
+from schc_utils import is_monochar
 
 
 class SCHCSender:
@@ -270,7 +271,7 @@ class SCHCSender:
                             self.LOGGER.debug("last bitmap {}".format(last_bitmap))
                             # If the SCHC ACK shows no missing tile at the receiver, abort.
                             # (C = 0 but transmission complete)
-                            if last_bitmap == '' or (last_bitmap[0] == '1' and all(last_bitmap)):
+                            if last_bitmap == '' or (last_bitmap[0] == '1' and is_monochar(last_bitmap)):
                                 self.LOGGER.error("ERROR: SCHC ACK shows no missing tile at the receiver.")
                                 self.schc_send(SenderAbort(fragment_sent.PROFILE, fragment_sent.HEADER))
 
