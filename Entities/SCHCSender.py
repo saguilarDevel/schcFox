@@ -5,7 +5,7 @@ from machine import Timer
 from Entities.Fragmenter import Fragmenter
 from Entities.SCHCLogger import SCHCLogger
 from Entities.SCHCTimer import SCHCTimer
-from Entities.Sigfox import SigfoxProfile
+from Entities.SigfoxProfile import SigfoxProfile
 from Entities.exceptions import *
 from Messages.ACK import ACK
 from Messages.Fragment import Fragment
@@ -116,6 +116,7 @@ class SCHCSender:
             try:
                 self.schc_send(fragment)
             except SCHCError:
+                self.LOGGER.FINISHED = False
                 break
 
         if self.LOGGER is not None:

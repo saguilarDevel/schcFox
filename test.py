@@ -1,4 +1,4 @@
-from Entities.Sigfox import SigfoxProfile
+from Entities.SigfoxProfile import SigfoxProfile
 from Messages.ACK import ACK
 from Messages.ACKHeader import ACKHeader
 from Messages.Fragment import Fragment

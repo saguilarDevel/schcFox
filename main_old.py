@@ -17,7 +17,7 @@ from network import Sigfox
 
 from Entities.Fragmenter import Fragmenter
 from Entities.SCHCTimer import SCHCTimer
-from Entities.Sigfox import Sigfox_Entity
+from Entities.SigfoxProfile import Sigfox_Entity
 from Error.errors import SCHCReceiverAbortReceived
 from Messages.Fragment import Fragment
 from Messages.ReceiverAbort import ReceiverAbort
