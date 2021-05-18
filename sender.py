@@ -7,7 +7,7 @@ from machine import Timer
 
 from Entities.Fragmenter import Fragmenter
 from Entities.SCHCTimer import SCHCTimer
-from Entities.Sigfox import SigfoxProfile
+from Entities.SigfoxProfile import SigfoxProfile
 from Entities.exceptions import *
 from Messages.ACK import ACK
 from Messages.Fragment import Fragment
