@@ -208,10 +208,11 @@ class SCHCSender:
                     self.LOGGER.FRAGMENTS_INFO_ARRAY.append(current_fragment)
                 raise SenderAbortError
 
-            if not fragment_sent.expects_ack() and not retransmit:
+            if not fragment_sent.expects_ack():
+                if not retransmit:
+                    self.FRAGMENT_INDEX += 1
                 if logging:
                     self.LOGGER.FRAGMENTS_INFO_ARRAY.append(current_fragment)
-                self.FRAGMENT_INDEX += 1
                 return
 
             if ack is not None:
