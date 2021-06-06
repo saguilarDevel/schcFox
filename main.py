@@ -57,7 +57,7 @@ for pair in exp_pairs:
 
         # Wait for the cleaning function to end
         sender.TIMER.wait(30)
-        sender.set_delay(20)
+        # sender.set_delay(20)
         sender.start_session()
 
 input("Round of experiments complete. Press Enter to exit.")

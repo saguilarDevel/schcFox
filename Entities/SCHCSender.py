@@ -89,9 +89,12 @@ class SCHCSender:
         if self.LOGGER is not None:
             self.LOGGER.START_SENDING_TIME = self.LOGGER.CHRONO.read()
             self.LOGGER.TOTAL_SIZE = total_size
+            self.LOGGER.FINISHED = False
 
         while self.FRAGMENT_INDEX < len(self.FRAGMENTS):
             fragment = Fragment(self.PROFILE, self.FRAGMENTS[self.FRAGMENT_INDEX])
+            current_size += len(self.FRAGMENTS[self.FRAGMENT_INDEX][1])
+            percent = round(float(current_size) / float(total_size) * 100, 2)
 
             if self.LOGGER is not None:
                 self.LOGGER.info("Sending...")
@@ -106,12 +109,9 @@ class SCHCSender:
                                                                                  fragment.HEADER.FCN))
                 self.LOGGER.debug("SCHC Fragment: {}".format(fragment.to_string()))
                 self.LOGGER.debug("SCHC Fragment Payload: {}".format(fragment.PAYLOAD))
-
-            current_size += len(self.FRAGMENTS[self.FRAGMENT_INDEX][1])
-            percent = round(float(current_size) / float(total_size) * 100, 2)
-            self.LOGGER.debug("{} / {}, {}%".format(current_size,
-                                                    total_size,
-                                                    percent))
+                self.LOGGER.debug("{} / {}, {}%".format(current_size,
+                                                        total_size,
+                                                        percent))
 
             try:
                 self.schc_send(fragment)
