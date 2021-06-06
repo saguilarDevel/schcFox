@@ -143,6 +143,7 @@ class TestAck(unittest.TestCase):
             last_bitmap = bitmap[:(list_length - 1) % profile.WINDOW_SIZE]
             self.assertEqual(len(last_bitmap), (list_length - 1) % profile.WINDOW_SIZE)
 
+
 class TestSenderAbort(unittest.TestCase):
     def test_init(self):
         hex_data = "053131313231333134313531"
@@ -234,7 +235,7 @@ class TestReceiverAbort(unittest.TestCase):
 
         self.assertTrue(received_ack.is_receiver_abort())
 
-    def test_receive_2byte(self):
+    def test_receive_2byte_fromhex(self):
         profile = SigfoxProfile("UPLINK", "ACK ON ERROR", 2)
         frag_hex = 'f03439313231323334353637'
         header = bytes.fromhex(frag_hex[:4])
@@ -246,6 +247,25 @@ class TestReceiverAbort(unittest.TestCase):
         ack_object = ACK.parse_from_hex(profile, ack_hex)
         ack_object.HEADER.to_string()
         self.assertTrue(abort.is_receiver_abort())
+
+    def test_receive_2byte_fromstr(self):
+        profile = SigfoxProfile("UPLINK", "ACK ON ERROR", 2)
+        ack = "1111000000110000000000000000000000000000000000000000000000000000"
+        ack_index_dtag = profile.RULE_ID_SIZE
+        ack_index_w = ack_index_dtag + profile.T
+        ack_index_c = ack_index_w + profile.M
+        ack_index_bitmap = ack_index_c + 1
+        ack_index_padding = ack_index_bitmap + profile.BITMAP_SIZE
+
+        received_ack = ACK(profile,
+                           rule_id=ack[:ack_index_dtag],
+                           dtag=ack[ack_index_dtag:ack_index_w],
+                           w=ack[ack_index_w:ack_index_c],
+                           c=ack[ack_index_c],
+                           bitmap=ack[ack_index_bitmap:ack_index_padding],
+                           padding=ack[ack_index_padding:])
+
+        self.assertFalse(received_ack.is_receiver_abort())
 
     def test_from_hex(self):
         ack = ACK.parse_from_hex(SigfoxProfile("UPLINK", "ACK ON ERROR", 1), "07ff800000000000")
@@ -282,6 +302,7 @@ class TestFragmenter(unittest.TestCase):
                 break
 
         self.assertTrue(equal)
+
 
 if __name__ == '__main__':
     unittest.main()
