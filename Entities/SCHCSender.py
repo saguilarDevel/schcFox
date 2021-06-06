@@ -361,6 +361,6 @@ class SCHCSender:
                 self.CURRENT_WINDOW += 1
 
             # Else, Sigfox communication failed.
-            else:
-                self.LOGGER.error("ERROR: Timeout reached.")
-                raise NetworkDownError
+            # else:
+            #     self.LOGGER.error("ERROR: Timeout reached.")
+            #     raise NetworkDownError

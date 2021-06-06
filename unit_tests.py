@@ -246,7 +246,12 @@ class TestReceiverAbort(unittest.TestCase):
         ack_hex = 'f03fff0000000000'
         ack_object = ACK.parse_from_hex(profile, ack_hex)
         ack_object.HEADER.to_string()
-        self.assertTrue(abort.is_receiver_abort())
+        self.assertTrue(ack_object.is_receiver_abort())
+
+        ack_hex = 'f030000000000000'
+        ack_object = ACK.parse_from_hex(profile, ack_hex)
+        ack_object.HEADER.to_string()
+        self.assertFalse(ack_object.is_receiver_abort())
 
     def test_receive_2byte_fromstr(self):
         profile = SigfoxProfile("UPLINK", "ACK ON ERROR", 2)
