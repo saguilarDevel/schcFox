@@ -20,7 +20,7 @@ pycom.heartbeat(False)
 
 for pair in exp_pairs:
     filename = pair[0]
-    # input("Press enter to continue with {}".format(filename))
+    input("Press enter to continue with {}".format(filename))
 
     for repetition in range(pair[1]):
 
