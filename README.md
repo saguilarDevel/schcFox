@@ -59,7 +59,8 @@ dependencies defined exclusively for Pycom devices. Please check
 
 ## Authors
 
-This code was developed by
+This code was developed by the following people, with the aid of the
+[SCHC over Sigfox draft](https://datatracker.ietf.org/doc/html/draft-ietf-lpwan-schc-over-sigfox) authors.
 * Diego Wistuba
 * Sergio Aguilar
 * Antonis Platis
