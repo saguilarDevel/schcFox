@@ -16,7 +16,4 @@ class SenderAbort(Fragment):
         while len(payload) < payload_max_length:
             payload += '0'
 
-        print(new_header)
-        print(payload)
-
         super().__init__(profile, [bitstring_to_bytes(new_header), payload.encode()])

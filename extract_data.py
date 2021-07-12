@@ -106,13 +106,14 @@ def extract_data(foldername, stats_file, output, spreadsheet):
     sheet.cell(row=25, column=current_column).value = df_all1['send_time'].mean(axis=0, skipna=True)
     sheet.cell(row=26, column=current_column).value = df_all1['send_time'].std(axis=0, skipna=True) if not isnan(
         df_all1['send_time'].std(axis=0, skipna=True)) else 0
-    # df1_transposed.to_excel('test_stats_2.2.xlsx', engine='xlsxwriter')
+
     output.write(
         f"Transmission Time (excluding code overhead): {df1_transposed['send_time'].sum(axis=0, skipna=True)}\n\n")
     sheet.cell(row=27, column=current_column).value = df1_transposed['send_time'].sum(axis=0, skipna=True)
     output.write(
         f"Transmission Time (of all the session): {data['total_transmission_time']}\n\n")
     sheet.cell(row=28, column=current_column).value = data['total_transmission_time']
+
     # is aborted?
     if df_all0[df_all0['abort'].isin([True])]['abort'].count() > 0:
         print("ABORT in df_all0")
